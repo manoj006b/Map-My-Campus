@@ -1,0 +1,1061 @@
+/* ============================================ */
+/* DESKTOP-ONLY FORCING STYLES - ADD AT TOP */
+/* ============================================ */
+
+/* Force desktop layout on all devices */
+body {
+  min-width: 1200px !important;
+  overflow-x: auto !important;
+}
+
+/* Disable any responsive behavior */
+img {
+  max-width: none !important;
+  height: auto;
+}
+
+/* Mobile warning message */
+#mobile-warning {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  z-index: 999999;
+  text-align: center;
+  padding: 50px 20px;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+}
+
+#mobile-warning h2 {
+  color: red;
+  margin-bottom: 30px;
+  font-size: 36px;
+}
+
+.warning-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 800px;
+  width: 90%;
+}
+
+.instructions {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.instructions h3 {
+  color: yellow;
+  margin-bottom: 15px;
+}
+
+.instructions p {
+  margin: 10px 0;
+  font-size: 20px;
+  color: #ddd;
+}
+
+.rotate-device {
+  font-size: 60px;
+  margin: 20px 0;
+  animation: rotate 2s infinite;
+  color: #4CAF50;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(90deg); }
+}
+
+#try-anyway-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#try-anyway-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* ============================================ */
+/* ADD THIS TO DISABLE RESPONSIVE BEHAVIOR */
+/* ============================================ */
+
+/* Force fixed sizes for all elements */
+nav {
+  width: 100% !important;
+  min-width: 1200px !important;
+}
+
+.input-row {
+  flex-wrap: nowrap !important;
+}
+
+.input-wrapper {
+  flex: none !important;
+}
+
+/* Disable any media queries that make it responsive */
+@media (max-width: 768px) {
+  /* Override any mobile styles */
+  body, nav, .input-row, .input-wrapper, input, button {
+    transform: none !important;
+    width: auto !important;
+    min-width: 1200px !important;
+    font-size: inherit !important;
+    padding: inherit !important;
+    margin: inherit !important;
+  }
+  
+  /* Keep warning visible on mobile */
+  #mobile-warning {
+    display: block !important;
+  }
+}
+
+/* YOUR EXISTING CSS STARTS HERE */
+body {
+  text-align: center;
+  font-size: 22px;
+}
+
+h1 {
+  margin-top:-20px;
+  color: rgb(246, 4, 4);
+  font-size:70px;
+  background:url("color-5.png");
+  background-size: contain;
+  background-clip:text;
+  color: transparent;
+  margin-top:- 20%;
+  display: block;
+}
+/* ... rest of your existing CSS ... */
+body {
+  text-align: center;
+  font-size: 22px;
+}
+
+h1 {
+  margin-top:-20px;
+  color: rgb(246, 4, 4);
+  font-size:70px;
+  background:url("color-5.png");
+  background-size: contain;
+  background-clip:text;
+  color: transparent;
+  margin-top:- 20%;
+  display: block;
+}
+#fromBox {
+  margin-left:6%;
+}
+.from{
+  margin-left:9%;
+}
+#fromList{
+  margin-left:9%;
+}
+#toBox,.to {
+  margin-left:-2%;
+}
+#toList{
+  margin-left:2%;
+}
+.input-row {
+    margin-top:-7px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  position: relative;
+}
+label{
+    color: rgb(4, 4, 81);
+    display: block;
+     margin-top:-5px;
+     font-family: "Eras Demi ITC", sans-serif;
+     margin-left: 5px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+input {
+  padding: 10px;
+  width: 200px;
+  height: 20px;
+  font-size: 15px;
+  border: solid rgb(5, 5, 79);
+  border-radius: 15px;
+  background-color: rgb(5, 5, 79);
+  color: white;
+}
+
+input::placeholder {
+  color: white;
+    border: solid rgb(5, 5, 79);
+}
+
+.dropdown {
+margin-bottom: 10%;
+    margin-left:5px;
+  display: none;
+  position: absolute;
+  top:50px;
+  left: 0;
+  width:210px;
+  max-height: 180px;
+  overflow-y: auto;
+  color: rgb(3, 3, 80);
+  background-color: white;
+  border: 1px solid #597ae8;
+  list-style-type: none;
+  padding: 0;
+  z-index: 999;
+}
+
+.dropdown li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #c1bcbc;
+  transition: 0.2s;
+  color: #1a49e2;
+}
+
+button {
+  margin-top:-0.6%;
+  background-color: rgb(5, 5, 79);
+  color: white;
+  width: 110px;
+  height: 43px;
+  border-radius:18px;
+  font-size: 18px;
+  border: 2px solid rgb(5, 5, 79);
+  cursor: pointer;
+  margin-bottom:1%;
+  margin-left:-20px;
+ 
+} button {
+    text-decoration: none;
+    color: aliceblue;
+}
+button:hover {
+  background-color: yellow;
+  color: rgb(10, 10, 10);
+  border-color: yellow;  
+}
+button a:hover {
+  color: rgb(10, 10, 10);
+
+}
+
+.menu{
+  
+    margin-top: -7px;
+    display: flex;
+    gap:22px;
+    margin-left:75%;
+    list-style: none;
+   
+}
+nav{
+    background-color: rgb(158, 5, 228);
+    max-height:max-content;
+    height:550px;
+    width:102%;
+}
+.menu a {
+  color: white;         /* Change the text color */
+  text-decoration: none;   /* Remove underline */
+  gap:5.5x;
+  margin-right:10px;
+  font-size:20px;
+  
+}
+.menu a:hover{
+  color: yellow;
+text-decoration:underline;  
+
+}
+.input-row,.input-wrapper{
+  margin-top:-2%;
+}
+#map{
+  display:inline-block;
+  
+}
+
+#sideMenu_q {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_d {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_e {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_g {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_a {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_b {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_c {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+#sideMenu_f {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden by default */
+    background-color:rgb(119, 119, 119);
+    color: rgb(240, 236, 236);
+    transition: 0.5s;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    opacity:0.9; 
+}
+h2{
+    margin-left:60px;
+    display: flex;
+    color:rgb(235, 226, 226);
+}
+summary:hover{
+    color: rgb(237, 218, 11);
+    transition:0.3s;
+}
+summary:focus{
+    color: rgb(237, 218, 11);
+}
+
+/* Label style */
+p{
+  white-space:nowrap;
+  display: flex;
+    align-items: center;
+   padding: 0%;
+    margin-left:30px;
+    color: rgb(237, 237, 237);
+    font-size:18px;
+  transform: translate(35px);
+  column-gap: 0cap;
+
+}
+details{
+    align-items: center;
+    margin-top:15px;
+    color:rgb(2, 12, 103)
+}
+.clickable-label_q {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-507px, 747px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.clickable-label_q:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_d:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_d {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-346px, 649px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.symbol_d {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-380px,640px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_d:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_d:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_g {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-100px, 418px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.symbol_g {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-133px,410px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_g:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_g:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_a {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(509px, 765px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.symbol_a {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(475px,755px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_a:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_a:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_b {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(352px, 748px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.symbol_b {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(315px,735px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_b:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_b:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_c {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(83px,698px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.symbol_c {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(50px,690px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_c:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_c:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.clickable-label_f {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(223px,575px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.clickable-label_f:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.symbol_f {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(188px,565px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_f:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.clickable-label_e {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-195px,565px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.clickable-label_e:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.symbol_e{
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-229px,558px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_e:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+button .info{
+  background-color: #ccc;
+}
+.symbol{
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-228px,556px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s;
+}
+.symbol_q {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-540px,740px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+ .symbol_q:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+ .symbol2 {
+  display: inline-block;
+  width: 50px;
+  height: 45px;
+  cursor: pointer;
+  border-radius:18px;
+  transform: translate(5px, -10px); /* keep image position */
+} 
+/* smoother rotate */
+.rotate-once {
+  animation: rotateOnce 0.35s ease-in-out forwards;
+}
+
+@keyframes rotateOnce {
+  from { transform: translate(5px, -10px) rotate(0deg); }
+  to   { transform: translate(5px, -10px) rotate(180deg); }
+}
+
+.symbol:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+#d1{
+  transform: translate(-50px);
+}
+#p1,#p2,#p3,#p4,#p5,#p6{
+  transform: translate(40px);
+  color:white;
+  font-size: 20px;
+}
+#p2{
+  transform: translate(55px);
+}
+#p3{
+  transform: translate(45px);
+}
+#p4{
+  transform: translate(48px);
+}
+#p5{
+  transform: translate(36px);
+}
+#p6{
+  transform: translate(21px);
+}
+#d2{
+  transform: translate(-46px);
+}
+#d3{
+  transform: translate(-59px);
+}
+#d4{
+  transform: translate(-47px);
+}
+#d2 p{
+  transform: translate(32px);
+}
+#d3 p{
+  transform: translate(45px);
+}
+ html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .leaflet-control-zoom {
+      transform: scale(1.2); /* make zoom buttons bigger */
+      margin: 10px;
+    }
+
+    /* Fullscreen overlay for map */
+#mapOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: white;
+  display: none; /* hidden initially */
+  z-index: 1000; /* on top of everything */
+}
+
+#map1 {
+  height: 100%;
+  width: 100%;
+}
+#closeMapBtn {
+  position: absolute;
+  top: 15px;
+  right:47px;
+  background: rgb(207, 6, 6);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 1100;
+  border-radius: 4px;
+}
+ #closeMapBtn:hover{
+    background-color: rgb(246, 243, 243);
+    color:red;
+}
+.building-label {
+  color: #dd0000;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 4px rgba(205, 59, 59, 0.7);
+  text-align: center;
+  pointer-events: none;
+}
+#map { height: 600px; width: 100%; }
+/* Add this to your CSS file */
+[id^="sideMenu_"] {
+  position: fixed;
+  right: -350px;
+  top: 0;
+  width: 350px;
+  height: 100%;
+  transition: right 0.3s ease;
+  z-index: 1000;
+}
+.library {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(109px, 880px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.library_l {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(75px,875px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.library_l:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.library:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.can1 {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-200px, 800px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.can1_1 {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-235px,795px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.can1_1:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.can1:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.can2{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(610px, 615px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.can2_2 {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(575px,610px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.can2_2:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.can2:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.grd{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(385px,605px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.grd_aud {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(350px,600px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.grd_aud:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.grd:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.ind{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-455px,555px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.ind_aud {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-490px,550px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.ind_aud:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.ind:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.voc{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-625px,525px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.voc_h {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-660px,518px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.voc_h:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.voc:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+.nri{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-565px,447px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.nri_h {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-600px,440px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.nri_h:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.nri:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}
+
+.Bharathi{
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
+  font-size: 22px;
+  margin: 20px;
+  display: inline-block;
+  position: absolute;
+  transform: translate(-365px,345px);
+  left: 50%;
+  margin: 0;
+  padding: 0%;
+  font-family: "Bahnschrift SemiBold SemiConden", sans-serif;
+}
+.Bharathi_h {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-400px,340px);
+  display: inline-block;
+  vertical-align: middle;
+   transition: filter 0s; 
+ }
+.Bharathi_h:hover  {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(7482%) hue-rotate(357deg) brightness(90%) contrast(110%);
+}
+.Bharathi:hover{
+  color:rgb(240, 6, 6);
+  font-weight:bold;
+}

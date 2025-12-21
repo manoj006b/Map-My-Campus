@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <!-- CHANGE THIS META TAG -->
+  <meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Map My Campus</title>
+  <link rel="stylesheet" href="style9.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+  <!-- ADD THIS MOBILE WARNING AT THE BEGINNING OF BODY -->
+  <div id="mobile-warning">
+    <div class="warning-content">
+      <h2>⚠️ DESKTOP VIEW REQUIRED</h2>
+      <p>This website is optimized for desktop view only.</p>
+      <p>Please switch to <strong>Desktop Site</strong> mode in your browser:</p>
+      
+      <div class="instructions">
+        <h3>For Mobile Browsers:</h3>
+        <p>1. Open browser menu (three dots)</p>
+        <p>2. Check "Desktop Site" or "Request Desktop Site"</p>
+        <p>3. Refresh the page</p>
+      </div>
+      
+      <div class="rotate-device">↻</div>
+      
+      <p><em>Or use a desktop/laptop computer for best experience.</em></p>
+      
+      <button id="try-anyway-btn" style="padding: 15px 30px; font-size: 18px; margin-top: 20px;">
+        Try Anyway (Not Recommended)
+      </button>
+    </div>
+  </div>
+
+  <!-- SINGLE NAV TAG (REMOVED THE DUPLICATE) -->
+  <nav>
+    <div> <br>
+      <ul class="menu">
+      <li><a href="#"> </a></li>
+<li><a href="#"></a></li>     
+        <li><a href="#"></a></li>
+      </ul>
+    </div>
+    <div></div>
+    <h1>Map My Campus</h1><br>
+
+    <div class="input-row">
+      <!-- FROM BOX -->
+      <div class="input-wrapper">
+        <label class="from" for="fromBox">From:</label>
+        <input type="text" id="fromBox" placeholder="Enter Your Current Location" onclick="showList('fromList')"
+          onkeyup="filterItems('fromBox', 'fromList')">
+        <ul id="fromList" class="dropdown">
+          <li>Current Location</li>
+          <li>Front Gate</li>
+          <li>Admission Office</li>
+          <li>Library</li>
+          <li>Principal Office</li>
+          <li>S F Office</li>
+          <li>Aided Office</li>
+          <li>Hostel Office</li>
+          <li>Canteen 1</li>
+          <li>Canteen 2</li>
+          <li>GRD Auditorium</li>
+          <li>A Block</li>
+          <li>B Block</li>
+          <li>C Block</li>
+          <li>D Block</li>
+          <li>E Block</li>
+          <li>F Block</li>
+          <li>G Block</li>
+          <li>Q Block</li>
+          <li>Back Gate</li>
+        </ul>
+      </div>
+      <div>
+        <img src="swap bar-2.jpg" class="symbol2" alt="Swap">
+      </div>
+      <!-- TO BOX -->
+      <div class="input-wrapper">
+        <label class="to" for="toBox">To:</label>
+        <input type="text" id="toBox" placeholder="Enter Your Destination" onclick="showList('toList')"
+          onkeyup="filterItems('toBox', 'toList')">
+        <ul id="toList" class="dropdown">
+          <li>Current Location</li>
+          <li>Front Gate</li>
+          <li>Admission Office</li>
+          <li>Library</li>
+          <li>Principal Office</li>
+          <li>S F Office</li>
+          <li>Aided Office</li>
+          <li>Hostel Office</li>
+          <li>Canteen 1</li>
+          <li>Canteen 2</li>
+          <li>GRD Auditorium</li>
+          <li>A Block</li>
+          <li>B Block</li>
+          <li>C Block</li>
+          <li>D Block</li>
+          <li>E Block</li>
+          <li>F Block</li>
+          <li>G Block</li>
+          <li>Q Block</li>
+          <li>Back Gate</li>
+        </ul>
+      </div>
+      <br><br><button id="but" onclick="searchRoute()">Search</button>
+    </div>
+  </nav>
+
+ 
+  <div>
+    <label class="clickable-label_q" id="openLabel_q">Q Block</label>
+    <div id="sideMenu_q">
+      <h2>Q Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- Q Block location symbol -->
+  <div>
+    <img src="Qblock.png" id="openLabel1_q" alt="Location Symbol" class="symbol_q">
+  </div>
+
+  
+ <!-- E Block side menu -->
+  <div>
+    <label class="clickable-label_e" id="openLabel_e">E Block</label>
+    <div id="sideMenu_e">
+      <h2>E Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Eblock.png" id="openLabel1_e" alt="Location Symbol" class="symbol_e">
+  </div>
+
+
+  <div>
+    <label class="clickable-label_d" id="openLabel_d">D Block</label>
+    <div id="sideMenu_d">
+      <h2>D Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Dblock.png" id="openLabel1_d" alt="Location Symbol" class="symbol_d">
+  </div>
+
+
+  <div>
+    <label class="clickable-label_g" id="openLabel_g">G Block</label>
+    <div id="sideMenu_g">
+      <h2>G Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Gblock.png" id="openLabel1_g" alt="Location Symbol" class="symbol_g">
+  </div>
+
+  <div>
+    <label class="clickable-label_a" id="openLabel_a">A Block</label>
+    <div id="sideMenu_a">
+      <h2>A Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Ablock.png" id="openLabel1_a" alt="Location Symbol" class="symbol_a">
+  </div>
+
+  <div>
+    <label class="clickable-label_b" id="openLabel_b">B Block</label>
+    <div id="sideMenu_b">
+      <h2>B Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Bblock.png" id="openLabel1_b" alt="Location Symbol" class="symbol_b">
+  </div>
+
+  <div>
+    <label class="clickable-label_c" id="openLabel_c">C Block</label>
+    <div id="sideMenu_c">
+      <h2>C Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Cblock.png" id="openLabel1_c" alt="Location Symbol" class="symbol_c">
+  </div>
+
+  <div>
+    <label class="clickable-label_f" id="openLabel_f">F Block</label>
+    <div id="sideMenu_f">
+      <h2>F Block</h2>
+      <details id="d1">
+        <summary>Departments</summary>
+        <details id="p1">
+          <summary>B.Sc Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p2">
+          <summary>B.Sc Computer Application</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p3">
+          <summary>B.Sc Data Analytics with Computer Science</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p4">
+          <summary>B.Sc Computer Networks</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p5">
+          <summary>M.Sc Software System</summary>
+          <p>214,202,220</p>
+        </details>
+        <details id="p6">
+          <summary>B.Sc Informational Technology</summary>
+          <p>214,202,220</p>
+        </details>
+      </details>
+      <details id="d2">
+        <summary>Ground Floor</summary>
+        <p>E101-E120</p>
+      </details>
+      <details id="d3">
+        <summary>First Floor</summary>
+        <p>E201-E220</p>
+        <p>Lap-208 and 211</p>
+      </details>
+      <details id="d4">
+        <summary>Second Floor</summary>
+        <p>E301-E320</p>
+        <p>Lap-311</p>
+      </details>
+    </div>
+  </div>
+  <!-- E Block location symbol -->
+  <div>
+    <img src="Fblock.png" id="openLabel1_f" alt="Location Symbol" class="symbol_f">
+  </div>
+
+  <div>
+    <label class="library" >Library</label>
+  </div>
+    <div>
+      <img src="library.png"  alt="Location Symbol" class="library_l">
+    </div>
+
+    <div>
+    <label class="can1" >Canteen 1</label>
+  </div>
+    <div>
+      <img src="can.png"  alt="Location Symbol" class="can1_1">
+    </div>
+    
+    <div>
+    <label class="can2" >Canteen 2</label>
+  </div>
+    <div>
+      <img src="can.png"  alt="Location Symbol" class="can2_2">
+    </div>
+    <div>
+    <label class="grd" >GRD Auditorium</label>
+  </div>
+    <div>
+      <img src="location.png"  alt="Location Symbol" class="grd_aud">
+    </div>
+    
+     <div>
+    <label class="ind" >Indoor Auditorium</label>
+  </div>
+    <div>
+      <img src="Eblock.png"  alt="Location Symbol" class="ind_aud">
+    </div>
+
+      <div>
+    <label class="voc" >VOC Hostel</label>
+  </div>
+    <div>
+      <img src="hostel.png"  alt="Location Symbol" class="voc_h">
+    </div>
+
+       <div>
+    <label class="nri" >NRI Hostel</label>
+  </div>
+    <div>
+      <img src="hostel.png"  alt="Location Symbol" class="nri_h">
+    </div>
+
+      <div>
+    <label class="Bharathi" >Bharathi Hostel</label>
+  </div>
+    <div>
+      <img src="hostel.png"  alt="Location Symbol" class="Bharathi_h">
+    </div>
+
+    <div id="map" class="map-container">
+  <img src="map2.png" usemap="#campusmap" alt="Campus Map">
+</div>
+    <div id="mapOverlay">
+      <button id="closeMapBtn" onclick="closeMap()">Close ✖</button>
+      <div id="map1"></div>
+    </div>
+
+    <script src="script9.js"></script>
+</body>
+
+</html>

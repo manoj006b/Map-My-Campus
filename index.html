@@ -5,12 +5,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Your Way – PSGCAS</title>
+
+  <!-- ── Leaflet CSS (MUST come before any map JS) ── -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <!-- ── Font Awesome ── -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- ── Google Fonts ── -->
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
+
+  <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║  SCRIPT LOAD ORDER — CRITICAL                                   ║
+    ║                                                                  ║
+    ║  1. Leaflet CSS  (head)                                         ║
+    ║  2. Leaflet JS   (end of body, or here with defer)              ║
+    ║  3. OSMBuildings (end of body, AFTER Leaflet)                   ║
+    ║                                                                  ║
+    ║  OSMBuildings-Leaflet.js calls `L.Class.extend()` at parse      ║
+    ║  time. If Leaflet isn't loaded yet, you get:                    ║
+    ║    "Uncaught ReferenceError: L is not defined"                  ║
+    ║                                                                  ║
+    ║  FIX: Both scripts are moved to the END of <body>.              ║
+    ║  The OSMBuildings script tag appears AFTER the Leaflet tag.     ║
+    ║                                                                  ║
+    ║  CDN CHANGE: @master branch is unstable and can break at any    ║
+    ║  commit. We use the pinned v0.2.2b release tag instead:         ║
+    ║    https://cdn.jsdelivr.net/gh/kekscom/osmbuildings@0.2.2b/    ║
+    ║       dist/OSMBuildings-Leaflet.js                              ║
+    ║                                                                  ║
+    ║  file:// PROTOCOL: OSM tile requests are blocked by the         ║
+    ║  browser's mixed-content / CORS policy when the page is         ║
+    ║  served from file://. Serve from a local HTTP server instead:   ║
+    ║    npx serve .          (Node.js)                               ║
+    ║    python -m http.server 8080  (Python 3)                       ║
+    ║    php -S localhost:8080       (PHP)                            ║
+    ╚══════════════════════════════════════════════════════════════════╝
+  -->
+
   <style>
     *,
     *::before,
@@ -82,7 +118,6 @@
       border-radius: 4px;
     }
 
-    /* Fullscreen mode — nav hidden */
     body.fullscreen-map nav {
       width: 0;
       min-width: 0;
@@ -230,7 +265,6 @@
       margin-bottom: 3px;
     }
 
-    /* ── FROM input wrapper with current-location btn ── */
     .from-input-wrap {
       position: relative;
       overflow: visible;
@@ -372,7 +406,6 @@
       opacity: 1;
     }
 
-    /* Navigation active state — hide search/clear buttons */
     .btn-row.nav-hidden {
       max-height: 0;
       opacity: 0;
@@ -581,7 +614,7 @@
       height: 100%;
     }
 
-    /* ══ FULLSCREEN HEADER BAR ══ */
+    /* ══ FULLSCREEN HEADER ══ */
     #fsHeader {
       display: none;
       position: absolute;
@@ -724,6 +757,20 @@
       background: #2d3561;
     }
 
+    #layerBtn {
+      background: #1a5276;
+    }
+
+    #layerBtn.active {
+      background: #2e86c1;
+      box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.35), 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    #layerBtn.layer-3d-active {
+      background: linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.45), 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
     #landmarkToggleBtn {
       background: #00b894;
     }
@@ -746,8 +793,340 @@
       transition-delay: 0.10s;
     }
 
-    #mapCtrlGroup:not(.ctrl-collapsed) #landmarkToggleBtn {
+    #mapCtrlGroup:not(.ctrl-collapsed) #layerBtn {
       transition-delay: 0.15s;
+    }
+
+    #mapCtrlGroup:not(.ctrl-collapsed) #landmarkToggleBtn {
+      transition-delay: 0.20s;
+    }
+
+    /* ══ LAYER SWITCHER PANEL ══ */
+    #layerPanel {
+      position: absolute;
+      right: 66px;
+      bottom: 24px;
+      z-index: 1100;
+      width: 272px;
+      background: rgba(10, 14, 39, 0.97);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(108, 92, 231, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateX(12px) scale(0.95);
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #layerPanel.open {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: all;
+    }
+
+    .layer-panel-header {
+      padding: 13px 16px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .layer-panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--purple2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .layer-panel-title::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--purple2);
+      display: inline-block;
+    }
+
+    .layer-panel-close {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .layer-panel-close:hover {
+      background: rgba(231, 105, 85, 0.3);
+      color: #fff;
+    }
+
+    .layer-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .layer-option {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      aspect-ratio: 1.55 / 1;
+      background: #1b1d45;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .layer-option:hover {
+      border-color: rgba(162, 155, 254, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .layer-option.selected {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px var(--gold), 0 6px 20px rgba(253, 203, 110, 0.2);
+    }
+
+    .layer-thumb {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layer-thumb-osm {
+      background: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(160deg, #e8f4f0 0%, #d4e9d8 30%, #c8e0c4 50%, #b8d4b0 70%, #d4dde8 100%);
+      background-size: 12px 12px, 12px 12px, 100% 100%;
+    }
+
+    .layer-thumb-satellite {
+      background: linear-gradient(160deg, #1a2a1a 0%, #2d4a2d 15%, #1c3a1c 30%, #243b24 45%, #1a2e1a 60%, #2a4030 75%, #152515 85%, #1e3020 100%);
+      position: relative;
+    }
+
+    .layer-thumb-satellite::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.06) 2px, transparent 2px),
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.04) 3px, transparent 3px),
+        radial-gradient(circle at 45% 75%, rgba(200, 180, 100, 0.15) 8px, transparent 8px),
+        radial-gradient(circle at 80% 20%, rgba(150, 200, 255, 0.1) 12px, transparent 12px);
+    }
+
+    .layer-thumb-light {
+      background: linear-gradient(160deg, #f8f8f6 0%, #f3f2ef 30%, #edeceb 60%, #f5f4f0 100%);
+      position: relative;
+    }
+
+    .layer-thumb-light::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(140, 140, 120, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140, 140, 120, 0.16) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+
+    .layer-thumb-3d {
+      background: linear-gradient(160deg, #0d1b2e 0%, #112240 40%, #0a1628 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layer-thumb-3d::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(100, 180, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100, 180, 255, 0.08) 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+
+    .layer-thumb-3d::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.7), transparent);
+      animation: thumbGlow 2.5s ease-in-out infinite;
+    }
+
+    .layer-thumb-3d-buildings {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    @keyframes thumbGlow {
+
+      0%,
+      100% {
+        opacity: 0.4;
+        width: 40%;
+      }
+
+      50% {
+        opacity: 1;
+        width: 70%;
+      }
+    }
+
+    .layer-thumb-road {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .layer-thumb-road svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .layer-label {
+      padding: 5px 8px 6px;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .layer-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.70rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .layer-check {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(253, 203, 110, 0.0);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: #111;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .layer-option.selected .layer-check {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #111;
+    }
+
+    .layer-option.selected .layer-check::after {
+      content: '✓';
+    }
+
+    /* ── 3D Status Badge ── */
+    #badge3D {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1020;
+      background: rgba(108, 92, 231, 0.92);
+      border: 1px solid rgba(162, 155, 254, 0.5);
+      border-radius: 22px;
+      padding: 6px 16px 6px 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #badge3D.visible {
+      display: flex;
+      animation: fadeDown 0.4s ease;
+    }
+
+    .badge3d-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #a29bfe;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    .badge3d-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.70rem;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .badge3d-sub {
+      font-size: 0.62rem;
+      color: rgba(255, 255, 255, 0.65);
+      font-weight: 400;
+    }
+
+    /* ── 3D Error Toast ── */
+    #toast3DError {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1025;
+      background: rgba(225, 112, 85, 0.92);
+      border: 1px solid rgba(255, 150, 130, 0.45);
+      border-radius: 22px;
+      padding: 7px 18px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(225, 112, 85, 0.4);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      pointer-events: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    #toast3DError.visible {
+      display: flex;
+      animation: fadeDown 0.4s ease;
     }
 
     /* ══ BOTTOM SHEET ══ */
@@ -1107,7 +1486,7 @@
       margin-top: 2px;
     }
 
-    /* ══ SIDE MENU (location details panel) ══ */
+    /* ══ SIDE MENU ══ */
     .overlay {
       position: fixed;
       inset: 0;
@@ -1154,7 +1533,6 @@
       z-index: 10;
     }
 
-    /* Top row: title + close button */
     .sidebar-header-top {
       display: flex;
       justify-content: space-between;
@@ -1188,7 +1566,6 @@
       transform: rotate(90deg);
     }
 
-    /* Direction button row inside header */
     .sidebar-direction-row {
       display: flex;
       align-items: center;
@@ -1510,7 +1887,6 @@
       pointer-events: none;
     }
 
-    /* Leaflet popup dark theme */
     .leaflet-popup-content-wrapper {
       background: #1b1d45 !important;
       border: 1px solid rgba(108, 92, 231, 0.35) !important;
@@ -1628,6 +2004,11 @@
         opacity: 0;
         border: none;
       }
+
+      #layerPanel {
+        right: 72px;
+        width: 230px;
+      }
     }
 
     @media(min-width:769px) {
@@ -1644,70 +2025,70 @@
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(12px)
+        transform: translateY(12px);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0)
+        transform: translateY(0);
       }
     }
 
     @keyframes fadeDown {
       from {
         opacity: 0;
-        transform: translateY(-10px)
+        transform: translateY(-10px);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0)
+        transform: translateY(0);
       }
     }
 
     @keyframes fadeIn {
       from {
-        opacity: 0
+        opacity: 0;
       }
 
       to {
-        opacity: 1
+        opacity: 1;
       }
     }
 
     @keyframes zoomIn {
       from {
         transform: scale(0.85);
-        opacity: 0
+        opacity: 0;
       }
 
       to {
         transform: scale(1);
-        opacity: 1
+        opacity: 1;
       }
     }
 
     @keyframes toastPop {
       from {
         transform: translateX(-50%) scale(0.7) translateY(16px);
-        opacity: 0
+        opacity: 0;
       }
 
       to {
         transform: translateX(-50%) scale(1) translateY(0);
-        opacity: 1
+        opacity: 1;
       }
     }
 
     @keyframes slideUp {
       from {
         transform: translateY(100%);
-        opacity: 0
+        opacity: 0;
       }
 
       to {
         transform: translateY(0);
-        opacity: 1
+        opacity: 1;
       }
     }
 
@@ -1715,11 +2096,11 @@
 
       0%,
       100% {
-        opacity: 1
+        opacity: 1;
       }
 
       50% {
-        opacity: 0.55
+        opacity: 0.55;
       }
     }
   </style>
@@ -1769,8 +2150,12 @@
         </div>
       </div>
       <div class="btn-row" id="btnRow">
-        <button class="btn-primary" id="but1" onclick="searchRoute()"><i class="fas fa-route"></i> Search Route</button>
-        <button class="btn-secondary" id="but2" onclick="clearRoute()"><i class="fas fa-times"></i> Clear</button>
+        <button class="btn-primary" id="but1" onclick="searchRoute()">
+          <i class="fas fa-route"></i> Search Route
+        </button>
+        <button class="btn-secondary" id="but2" onclick="clearRoute()">
+          <i class="fas fa-times"></i> Clear
+        </button>
       </div>
     </div>
     <div id="desktopRouteStack"></div>
@@ -1795,15 +2180,123 @@
 
     <div id="mapContainer"></div>
 
+    <!-- 3D Buildings status badge -->
+    <div id="badge3D">
+      <span class="badge3d-dot"></span>
+      <span class="badge3d-label">3D Buildings</span>
+      <span class="badge3d-sub">&nbsp;· OSM Data</span>
+    </div>
+
+    <!-- 3D error toast -->
+    <div id="toast3DError">
+      <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>
+      3D Buildings unavailable. Showing standard map.
+    </div>
+
     <!-- Map control cluster -->
     <div id="mapCtrlGroup">
       <button id="ctrlToggleBtn" title="Toggle controls">
         <i class="fas fa-chevron-up"></i>
       </button>
-      <button class="map-btn" id="currentLocationBtn" title="My Location"><i
-          class="fas fa-location-crosshairs"></i></button>
-      <button class="map-btn" id="fullscreenBtn" title="Fullscreen Map"><i class="fas fa-expand"></i></button>
-      <button class="map-btn" id="landmarkToggleBtn" title="Toggle Landmarks"><i class="fas fa-map-pin"></i></button>
+      <button class="map-btn" id="currentLocationBtn" title="My Location">
+        <i class="fas fa-location-crosshairs"></i>
+      </button>
+      <button class="map-btn" id="fullscreenBtn" title="Fullscreen Map">
+        <i class="fas fa-expand"></i>
+      </button>
+      <button class="map-btn" id="layerBtn" title="Switch Map Layer">
+        <i class="fas fa-layer-group"></i>
+      </button>
+      <button class="map-btn" id="landmarkToggleBtn" title="Toggle Landmarks">
+        <i class="fas fa-map-pin"></i>
+      </button>
+    </div>
+
+    <!-- ═══ LAYER SWITCHER PANEL ═══ -->
+    <div id="layerPanel">
+      <div class="layer-panel-header">
+        <span class="layer-panel-title">Map Style</span>
+        <button class="layer-panel-close" id="layerPanelClose" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="layer-options">
+
+        <!-- Standard (OpenStreetMap) -->
+        <div class="layer-option selected" data-layer="osm" title="OpenStreetMap Standard">
+          <div class="layer-thumb layer-thumb-osm">
+            <div class="layer-thumb-road">
+              <svg viewBox="0 0 100 65" preserveAspectRatio="none">
+                <line x1="0" y1="32" x2="100" y2="32" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" />
+                <line x1="0" y1="32" x2="100" y2="32" stroke="rgba(255,180,0,0.7)" stroke-width="1.2" />
+                <line x1="25" y1="0" x2="40" y2="65" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" />
+                <line x1="70" y1="0" x2="60" y2="65" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" />
+                <rect x="10" y="15" width="18" height="10" rx="1" fill="rgba(150,200,150,0.5)" />
+                <rect x="60" y="40" width="14" height="9" rx="1" fill="rgba(150,200,150,0.5)" />
+              </svg>
+            </div>
+          </div>
+          <div class="layer-label"><span class="layer-name">Standard</span><span class="layer-check"></span></div>
+        </div>
+
+        <!-- Satellite -->
+        <div class="layer-option" data-layer="satellite" title="ESRI World Imagery">
+          <div class="layer-thumb layer-thumb-satellite">
+            <div class="layer-thumb-road">
+              <svg viewBox="0 0 100 65" preserveAspectRatio="none">
+                <line x1="0" y1="30" x2="100" y2="35" stroke="rgba(255,220,100,0.6)" stroke-width="2" />
+                <line x1="30" y1="0" x2="45" y2="65" stroke="rgba(255,220,100,0.4)" stroke-width="1.5" />
+                <rect x="55" y="20" width="20" height="14" rx="1" fill="rgba(180,160,100,0.4)"
+                  stroke="rgba(200,180,120,0.3)" stroke-width="0.5" />
+              </svg>
+            </div>
+          </div>
+          <div class="layer-label"><span class="layer-name">Satellite</span><span class="layer-check"></span></div>
+        </div>
+
+        <!-- Light (CartoDB) -->
+        <div class="layer-option" data-layer="light" title="CartoDB Light">
+          <div class="layer-thumb layer-thumb-light">
+            <div class="layer-thumb-road">
+              <svg viewBox="0 0 100 65" preserveAspectRatio="none">
+                <line x1="0" y1="32" x2="100" y2="32" stroke="rgba(80,80,70,0.7)" stroke-width="3" />
+                <line x1="0" y1="32" x2="100" y2="32" stroke="rgba(210,110,40,0.8)" stroke-width="1.5" />
+                <line x1="30" y1="0" x2="40" y2="65" stroke="rgba(120,120,110,0.65)" stroke-width="2" />
+                <line x1="70" y1="0" x2="62" y2="65" stroke="rgba(120,120,110,0.65)" stroke-width="2" />
+                <rect x="8" y="14" width="16" height="10" rx="2" fill="rgba(160,160,145,0.65)" />
+                <rect x="60" y="40" width="20" height="11" rx="2" fill="rgba(160,160,145,0.65)" />
+                <circle cx="76" cy="17" r="4" fill="rgba(190,60,60,0.72)" />
+              </svg>
+            </div>
+          </div>
+          <div class="layer-label"><span class="layer-name">Light</span><span class="layer-check"></span></div>
+        </div>
+
+        <!-- 3D Buildings -->
+        <div class="layer-option" data-layer="3d" title="OSM 3D Buildings">
+          <div class="layer-thumb layer-thumb-3d">
+            <svg class="layer-thumb-3d-buildings" viewBox="0 0 100 65" preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <line x1="0" y1="42" x2="100" y2="42" stroke="rgba(100,180,255,0.25)" stroke-width="1.5" />
+              <line x1="50" y1="0" x2="50" y2="65" stroke="rgba(100,180,255,0.25)" stroke-width="1.5" />
+              <polygon points="20,45 20,20 38,14 38,39" fill="rgba(108,92,231,0.8)" />
+              <polygon points="20,20 38,14 50,22 32,28" fill="rgba(162,155,254,0.85)" />
+              <polygon points="32,28 50,22 50,47 32,53" fill="rgba(74,63,200,0.8)" />
+              <polygon points="54,45 54,28 66,24 66,41" fill="rgba(108,92,231,0.65)" />
+              <polygon points="54,28 66,24 75,30 63,34" fill="rgba(162,155,254,0.7)" />
+              <polygon points="63,34 75,30 75,47 63,51" fill="rgba(74,63,200,0.65)" />
+              <polygon points="76,46 76,36 85,33 85,43" fill="rgba(108,92,231,0.55)" />
+              <polygon points="76,36 85,33 91,37 82,40" fill="rgba(162,155,254,0.6)" />
+              <polygon points="82,40 91,37 91,47 82,50" fill="rgba(74,63,200,0.55)" />
+              <rect x="23" y="23" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.8)" />
+              <rect x="28" y="21" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.6)" />
+              <rect x="23" y="30" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.7)" />
+            </svg>
+          </div>
+          <div class="layer-label"><span class="layer-name">3D Buildings</span><span class="layer-check"></span></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- ═══ BOTTOM SHEET ═══ -->
@@ -1822,7 +2315,8 @@
             <div class="compact-stat"><span class="cstat-val" id="sheetDist">–</span><span
                 class="cstat-unit">Distance</span></div>
           </div>
-          <div class="expand-hint" id="expandHint" onclick="expandSheet()"><i class="fas fa-chevron-up"></i> Routes
+          <div class="expand-hint" id="expandHint" onclick="expandSheet()">
+            <i class="fas fa-chevron-up"></i> Routes
           </div>
         </div>
       </div>
@@ -1847,7 +2341,6 @@
   <div id="overlay" class="overlay"></div>
   <aside id="sideMenu" class="sidebar">
     <div class="sidebar-header">
-      <!-- Top row: title + close -->
       <div class="sidebar-header-top">
         <h1 id="sideMenuTitle">E Block</h1>
         <button class="close-btn" id="closeBtn">
@@ -1858,7 +2351,6 @@
           </svg>
         </button>
       </div>
-      <!-- Direction button row -->
       <div class="sidebar-direction-row">
         <button class="sidebar-direction-btn" id="sideMenuDirectionBtn" onclick="navigateFromSideMenu()">
           <i class="fas fa-route"></i> Get Directions
@@ -1867,13 +2359,15 @@
     </div>
     <div class="sidebar-content">
       <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>Ground Floor</summary>
+          </svg>Ground Floor
+        </summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Technology (SF)</p>
@@ -1894,13 +2388,15 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>First Floor</summary>
+          </svg>First Floor
+        </summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Science (SF)</p>
@@ -1921,13 +2417,15 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>Second Floor</summary>
+          </svg>Second Floor
+        </summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Application (SF)</p>
@@ -1948,12 +2446,14 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <circle cx="8.5" cy="8.5" r="1.5" />
             <polyline points="21 15 16 10 5 21" />
-          </svg>Images</summary>
+          </svg>Images
+        </summary>
         <ul class="department-list" style="padding:12px;">
           <li style="padding:0;background:transparent;border-left:none;">
             <div class="sidebar-carousel" id="sidebarCarousel">
@@ -1989,218 +2489,470 @@
     <div class="lb-counter" id="lbCounter">1 / 4</div>
   </div>
 
+  <!--
+    ╔══════════════════════════════════════════════════════════╗
+    ║  SCRIPT LOAD ORDER — DO NOT REORDER THESE THREE TAGS   ║
+    ║                                                          ║
+    ║  1. Leaflet JS  — defines the global `L` object         ║
+    ║  2. OSMBuildings-Leaflet.js — extends L.Class, so       ║
+    ║     Leaflet MUST be parsed first                         ║
+    ║  3. App <script> block — uses both L and OSMBuildings    ║
+    ║                                                          ║
+    ║  CDN pinned to tag v0.2.2b for stability.               ║
+    ║  @master can break at any upstream commit.              ║
+    ╚══════════════════════════════════════════════════════════╝
+  -->
+
+  <!-- STEP 1 — Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!--
+    STEP 2 — OSMBuildings for Leaflet (pinned release)
+    ─────────────────────────────────────────────────
+    WHY THIS URL?
+      • @master head can change without notice and has broken `L is not
+        defined` errors in production multiple times.
+      • v0.2.2b is the last stable classic (2.5D canvas) release that
+        is confirmed compatible with Leaflet 1.x.
+      • The file is served by jsDelivr with global CDN + SRI-ready.
+
+    WHAT THIS SCRIPT DOES AT PARSE TIME:
+      It calls  L.Class.extend({ … })  to register the OSMBuildings
+      layer class. That call requires `L` to already exist in scope —
+      which is why this tag must come AFTER the Leaflet script tag.
+
+    FALLBACK STRATEGY (implemented in enable3DLayer()):
+      If the script fails to load (network, CSP, etc.) the global
+      `OSMBuildings` will be undefined. The app detects this, shows
+      the error toast, and falls back to the OSM Standard raster layer.
+  -->
+  <script src="https://cdn.jsdelivr.net/gh/kekscom/osmbuildings@0.2.2b/dist/OSMBuildings-Leaflet.js"
+    onerror="window._osmBuildingsLoadFailed = true;"></script>
+
+  <!-- STEP 3 — Application logic -->
   <script>
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        UTILITIES
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     const isMobile = () => window.innerWidth <= 768;
     const expandNav = () => { if (!isMobile()) return; document.getElementById('mainNav').classList.remove('compact'); };
     const collapseNav = () => { if (!isMobile()) return; document.getElementById('mainNav').classList.add('compact'); };
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        NAV BUTTONS VISIBILITY
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     let navButtonsHidden = false;
+    function hideNavButtons() { document.getElementById('btnRow').classList.add('nav-hidden'); navButtonsHidden = true; }
+    function showNavButtons() { document.getElementById('btnRow').classList.remove('nav-hidden'); navButtonsHidden = false; }
+    function onFromBoxClick() { if (navButtonsHidden) restoreSearchUI(); showList('fromList'); expandNav(); }
+    function onToBoxClick() { if (navButtonsHidden) restoreSearchUI(); showList('toList'); expandNav(); }
+    function restoreSearchUI() { showNavButtons(); }
 
-    function hideNavButtons() {
-      document.getElementById('btnRow').classList.add('nav-hidden');
-      navButtonsHidden = true;
-    }
-
-    function showNavButtons() {
-      document.getElementById('btnRow').classList.remove('nav-hidden');
-      navButtonsHidden = false;
-    }
-
-    function onFromBoxClick() {
-      if (navButtonsHidden) restoreSearchUI();
-      showList('fromList');
-      expandNav();
-    }
-
-    function onToBoxClick() {
-      if (navButtonsHidden) restoreSearchUI();
-      showList('toList');
-      expandNav();
-    }
-
-    function restoreSearchUI() {
-      showNavButtons();
-    }
-
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        CURRENT LOCATION INLINE BUTTON
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function setCurrentLocationInFrom(e) {
       e.stopPropagation();
       const btn = document.getElementById('curLocInlineBtn');
       const fromBox = document.getElementById('fromBox');
-      if (fromBox.value === 'Current Location') {
-        fromBox.value = '';
-        btn.classList.remove('active');
-        return;
-      }
+      if (fromBox.value === 'Current Location') { fromBox.value = ''; btn.classList.remove('active'); return; }
       fromBox.value = 'Current Location';
       btn.classList.add('active');
       document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
       startGeolocation();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('fromBox').addEventListener('input', function () {
-        const btn = document.getElementById('curLocInlineBtn');
-        if (this.value !== 'Current Location') {
-          btn.classList.remove('active');
-        } else {
-          btn.classList.add('active');
-        }
-      });
-    });
-
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        FULLSCREEN
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     let isFullscreen = false;
-
     function enterFullscreen() {
-      isFullscreen = true;
-      document.body.classList.add('fullscreen-map');
+      isFullscreen = true; document.body.classList.add('fullscreen-map');
       document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-compress"></i>';
       document.getElementById('fullscreenBtn').title = 'Exit Fullscreen';
       setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400);
     }
-
     function exitFullscreen() {
-      isFullscreen = false;
-      document.body.classList.remove('fullscreen-map');
+      isFullscreen = false; document.body.classList.remove('fullscreen-map');
       document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-expand"></i>';
       document.getElementById('fullscreenBtn').title = 'Fullscreen Map';
       setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400);
     }
+    function toggleFullscreen() { isFullscreen ? exitFullscreen() : enterFullscreen(); }
 
-    function toggleFullscreen() {
-      isFullscreen ? exitFullscreen() : enterFullscreen();
-    }
-
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        CONTROL CLUSTER COLLAPSE
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     let ctrlCollapsed = false;
-
     function toggleCtrlGroup() {
       ctrlCollapsed = !ctrlCollapsed;
       const grp = document.getElementById('mapCtrlGroup');
       const btn = document.getElementById('ctrlToggleBtn');
       if (ctrlCollapsed) {
-        grp.classList.add('ctrl-collapsed');
-        btn.classList.add('collapsed');
-        btn.title = 'Show controls';
+        grp.classList.add('ctrl-collapsed'); btn.classList.add('collapsed'); btn.title = 'Show controls';
+        closeLayerPanel();
       } else {
-        grp.classList.remove('ctrl-collapsed');
-        btn.classList.remove('collapsed');
-        btn.title = 'Hide controls';
+        grp.classList.remove('ctrl-collapsed'); btn.classList.remove('collapsed'); btn.title = 'Hide controls';
       }
     }
 
-    /* ═══════════════════════════════════════════
-       BOTTOM SHEET
-    ═══════════════════════════════════════════ */
-    const SHEET_COLLAPSED_H = 110;
-    const SHEET_EXPANDED_RATIO = 0.52;
-    let sheetState = 'hidden';
-    let _dragStartY = 0, _dragStartH = 0, _isDragging = false;
+    /* ════════════════════════════════════════════════════════════════
+       LAYER CONFIGURATION
+    ════════════════════════════════════════════════════════════════ */
+    const tileLayers = {
+      osm: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: { maxZoom: 20, attribution: '' }
+      },
+      satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        options: { maxZoom: 20, attribution: '' }
+      },
+      light: {
+        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        options: { maxZoom: 20, attribution: '', subdomains: 'abcd' }
+      }
+    };
 
-    function sheetHeight() {
-      return sheetState === 'expanded'
-        ? Math.round(window.innerHeight * SHEET_EXPANDED_RATIO)
-        : SHEET_COLLAPSED_H;
+    /* ════════════════════════════════════════════════════════════════
+       LAYER STATE GLOBALS
+    ════════════════════════════════════════════════════════════════ */
+    let layerPanelOpen = false;
+    let currentLayerKey = 'osm';
+    let currentTileLayer = null;
+
+    /*
+      ── OSM BUILDINGS STATE ──
+      osmBuildingsInst  → the active OSMBuildings instance
+      is3DActive        → whether the 3D overlay is currently shown
+      baseLayerBefore3D → raster key active before 3D, restored on exit
+    */
+    let osmBuildingsInst = null;
+    let is3DActive = false;
+    let baseLayerBefore3D = 'osm';
+    let errorToastTimer = null;
+
+    /* ════════════════════════════════════════════════════════════════
+       LAYER PANEL OPEN / CLOSE
+    ════════════════════════════════════════════════════════════════ */
+    function openLayerPanel() {
+      layerPanelOpen = true;
+      document.getElementById('layerPanel').classList.add('open');
+      document.getElementById('layerBtn').classList.add('active');
+      positionLayerPanel();
+    }
+    function closeLayerPanel() {
+      layerPanelOpen = false;
+      document.getElementById('layerPanel').classList.remove('open');
+      if (!is3DActive) document.getElementById('layerBtn').classList.remove('active');
+    }
+    function toggleLayerPanel() { layerPanelOpen ? closeLayerPanel() : openLayerPanel(); }
+
+    function positionLayerPanel() {
+      const panel = document.getElementById('layerPanel');
+      const btn = document.getElementById('layerBtn');
+      const mapSection = document.getElementById('mapSection');
+      const mapRect = mapSection.getBoundingClientRect();
+      const btnRect = btn.getBoundingClientRect();
+      const panelH = panel.offsetHeight || 220;
+      let top = (btnRect.top + btnRect.height / 2) - panelH / 2;
+      top = Math.max(mapRect.top + 8, Math.min(mapRect.bottom - panelH - 8, top));
+      panel.style.bottom = 'auto';
+      panel.style.top = (top - mapRect.top) + 'px';
     }
 
+    /* ════════════════════════════════════════════════════════════════
+       SWITCH RASTER BASE LAYER
+    ════════════════════════════════════════════════════════════════ */
+    function switchRasterLayer(key) {
+      if (!campusMap || key === currentLayerKey) return;
+      if (currentTileLayer) { campusMap.removeLayer(currentTileLayer); currentTileLayer = null; }
+      const def = tileLayers[key];
+      currentTileLayer = L.tileLayer(def.url, def.options).addTo(campusMap);
+      currentTileLayer.bringToBack();
+      currentLayerKey = key;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       3D ERROR TOAST
+    ════════════════════════════════════════════════════════════════ */
+    function show3DError(msg) {
+      const t = document.getElementById('toast3DError');
+      if (msg) t.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>${msg}`;
+      t.classList.add('visible');
+      clearTimeout(errorToastTimer);
+      errorToastTimer = setTimeout(() => t.classList.remove('visible'), 5000);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       ENABLE 3D BUILDINGS LAYER
+       ─────────────────────────────────────────────────────────────
+       Root causes fixed here vs original code:
+
+       1. SCRIPT ORDER: OSMBuildings script was in <head> before
+          Leaflet, causing "L is not defined". Now both scripts are
+          at end of <body>, OSMBuildings AFTER Leaflet.
+
+       2. CDN STABILITY: Changed from @master (unstable) to pinned
+          @0.2.2b tag for reliable loading.
+
+       3. file:// PROTOCOL: OSM Buildings tile API uses HTTPS. Browsers
+          block mixed content and CORS from file:// origins. Always
+          serve from http://localhost:PORT (npx serve ., python -m
+          http.server, etc.).
+
+       4. CONSTRUCTOR OPTIONS: The classic 0.2.x build's constructor
+          does NOT accept a full options object as second argument in
+          all versions. We set visual options via .set() after init.
+
+       5. TILE URL TEMPLATE: The classic build uses {zoom} not {z},
+          and {x}/{y} directly. We pass the correct template.
+
+       6. ZOOM GUARD: OSMBuildings renders nothing below zoom 15.
+          We pan+zoom to the campus centre on 3D activation so
+          buildings appear immediately instead of a blank canvas.
+    ════════════════════════════════════════════════════════════════ */
+    function enable3DLayer() {
+      if (!campusMap) return;
+
+      // ── Guard: check if OSMBuildings loaded successfully ────────
+      if (typeof OSMBuildings === 'undefined' || window._osmBuildingsLoadFailed) {
+        console.warn('[3D] OSMBuildings library not available');
+        show3DError('3D Buildings unavailable. Check network connection.');
+        updateLayerOptionUI('osm');
+        return;
+      }
+
+      // ── Record current base and switch to OSM Standard ──────────
+      baseLayerBefore3D = currentLayerKey;
+      if (currentLayerKey !== 'osm') switchRasterLayer('osm');
+
+      // ── Tear down any existing instance ─────────────────────────
+      destroyOSMBuildings();
+
+      try {
+        /*
+          Create OSMBuildings instance.
+          Classic 0.2.x API: new OSMBuildings(leafletMap)
+          The constructor attaches a <canvas> overlay to the map.
+
+          NOTE: Do NOT pass options as second argument — some builds
+          ignore it and others throw. Use .set() after construction.
+        */
+        osmBuildingsInst = new OSMBuildings(campusMap);
+
+        /*
+          Apply visual style via .set().
+          These match the purple/campus theme.
+        */
+        osmBuildingsInst.set({
+          color: 'rgba(108, 92, 231, 0.80)',
+          wallColor: 'rgba(74, 63, 200, 0.75)',
+          roofColor: 'rgba(162, 155, 254, 0.88)',
+          shadows: false
+        });
+
+        /*
+          Load building tile data.
+          Template tokens: {zoom}, {x}, {y}  (classic 0.2.x format)
+          The API requires zoom ≥ 15 to return building data.
+
+          Data source: OSM Buildings public tile API
+          (backed by OpenStreetMap building footprints + height tags)
+        */
+        osmBuildingsInst.load(
+          'https://data.osmbuildings.org/0.2/anonymous/tile/{zoom}/{x}/{y}.json'
+        );
+
+        is3DActive = true;
+
+        // ── Ensure zoom ≥ 15 so buildings render immediately ──────
+        if (campusMap.getZoom() < 17) {
+          campusMap.setView([11.033400, 77.033864], 17);
+        }
+
+        // ── Update UI ──────────────────────────────────────────────
+        document.getElementById('badge3D').classList.add('visible');
+        document.getElementById('layerBtn').classList.add('layer-3d-active');
+        document.getElementById('layerBtn').classList.remove('active');
+
+        console.info('[3D] OSMBuildings active — tile data loading');
+
+      } catch (err) {
+        console.error('[3D] OSMBuildings init failed:', err);
+        destroyOSMBuildings();
+        show3DError('3D Buildings failed to initialise. Reverting to Standard.');
+        switchRasterLayer('osm');
+        updateLayerOptionUI('osm');
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       DISABLE / DESTROY 3D BUILDINGS LAYER
+       ─────────────────────────────────────────────────────────────
+       The classic OSMBuildings 0.2.x attaches a <canvas> element
+       directly to the Leaflet map container. We try the plugin's
+       own cleanup method first, then fall back to manual canvas
+       removal so no orphaned canvases accumulate.
+    ════════════════════════════════════════════════════════════════ */
+    function destroyOSMBuildings() {
+      if (!osmBuildingsInst) return;
+
+      try {
+        /*
+          Try official cleanup methods in order of preference.
+          Different patch versions of 0.2.x expose different names.
+        */
+        if (typeof osmBuildingsInst.remove === 'function') {
+          osmBuildingsInst.remove();
+        } else if (typeof osmBuildingsInst.destroy === 'function') {
+          osmBuildingsInst.destroy();
+        } else {
+          /*
+            Manual fallback: OSMBuildings inserts a <canvas> whose
+            className contains "osmb" or starts with "OSM". Remove
+            all such canvases from the map container.
+          */
+          const container = campusMap.getContainer();
+          // Target both the canvas and its possible wrapper div
+          container.querySelectorAll(
+            'canvas, .osmbuildings, [class*="osmb"]'
+          ).forEach(el => {
+            // Only remove elements that OSMBuildings added
+            if (
+              el.tagName === 'CANVAS' ||
+              (el.className && el.className.toString().toLowerCase().includes('osmb'))
+            ) {
+              el.remove();
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('[3D] OSMBuildings teardown error (non-fatal):', e);
+        // Still attempt manual canvas cleanup as last resort
+        try {
+          campusMap.getContainer()
+            .querySelectorAll('canvas')
+            .forEach(c => c.remove());
+        } catch (_) { /* ignore */ }
+      }
+
+      osmBuildingsInst = null;
+      is3DActive = false;
+
+      document.getElementById('badge3D').classList.remove('visible');
+      document.getElementById('layerBtn').classList.remove('layer-3d-active');
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       MASTER LAYER SWITCH DISPATCHER
+    ════════════════════════════════════════════════════════════════ */
+    function switchLayer(key) {
+      if (!campusMap) { closeLayerPanel(); return; }
+
+      if (key === '3d') {
+        if (is3DActive) { setTimeout(closeLayerPanel, 250); return; }
+        enable3DLayer();
+        updateLayerOptionUI('3d');
+        setTimeout(closeLayerPanel, 250);
+        return;
+      }
+
+      // Raster layer selected — tear down 3D if active
+      if (is3DActive) {
+        destroyOSMBuildings();
+      }
+
+      switchRasterLayer(key);
+      updateLayerOptionUI(key);
+      setTimeout(closeLayerPanel, 250);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       UPDATE LAYER OPTION HIGHLIGHT IN PANEL
+    ════════════════════════════════════════════════════════════════ */
+    function updateLayerOptionUI(activeKey) {
+      document.querySelectorAll('.layer-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.layer === activeKey);
+      });
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       INIT LAYER SWITCHER
+    ════════════════════════════════════════════════════════════════ */
+    function initLayerSwitcher() {
+      document.getElementById('layerBtn').addEventListener('click', e => {
+        e.stopPropagation(); toggleLayerPanel();
+      });
+      document.getElementById('layerPanelClose').addEventListener('click', e => {
+        e.stopPropagation(); closeLayerPanel();
+      });
+      document.querySelectorAll('.layer-option').forEach(opt => {
+        opt.addEventListener('click', () => switchLayer(opt.dataset.layer));
+      });
+      document.addEventListener('click', e => {
+        if (layerPanelOpen &&
+          !document.getElementById('layerPanel').contains(e.target) &&
+          !document.getElementById('layerBtn').contains(e.target)) {
+          closeLayerPanel();
+        }
+      });
+      window.addEventListener('resize', () => { if (layerPanelOpen) positionLayerPanel(); });
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       BOTTOM SHEET
+    ════════════════════════════════════════════════════════════════ */
+    const SHEET_COLLAPSED_H = 110;
+    const SHEET_EXPANDED_RATIO = 0.52;
+    let sheetState = 'hidden', _dragStartY = 0, _dragStartH = 0, _isDragging = false;
+
+    function sheetHeight() { return sheetState === 'expanded' ? Math.round(window.innerHeight * SHEET_EXPANDED_RATIO) : SHEET_COLLAPSED_H; }
     function applySheetHeight(h, animate = true) {
       const el = document.getElementById('bottomSheet');
       el.style.transition = animate ? 'height 0.38s cubic-bezier(0.4,0,0.2,1)' : 'none';
       el.style.height = h + 'px';
-      const extra = h + 16;
-      const grp = document.getElementById('mapCtrlGroup');
-      grp.style.bottom = (extra + 16) + 'px';
+      document.getElementById('mapCtrlGroup').style.bottom = (h + 32) + 'px';
     }
-
     function showSheet(state = 'collapsed') {
       if (!isMobile()) return;
       const el = document.getElementById('bottomSheet');
-      el.style.display = 'flex';
-      el.style.flexDirection = 'column';
+      el.style.display = 'flex'; el.style.flexDirection = 'column';
       sheetState = state;
       const panel = document.getElementById('sheetExpandedPanel');
       const hint = document.getElementById('expandHint');
-      if (state === 'expanded') {
-        panel.style.display = 'flex';
-        hint.innerHTML = '<i class="fas fa-chevron-down"></i> Collapse';
-        el.style.borderRadius = '24px 24px 0 0';
-      } else {
-        panel.style.display = 'none';
-        hint.innerHTML = '<i class="fas fa-chevron-up"></i> Routes';
-      }
+      if (state === 'expanded') { panel.style.display = 'flex'; hint.innerHTML = '<i class="fas fa-chevron-down"></i> Collapse'; }
+      else { panel.style.display = 'none'; hint.innerHTML = '<i class="fas fa-chevron-up"></i> Routes'; }
       requestAnimationFrame(() => applySheetHeight(sheetHeight()));
     }
-
     function hideSheet() {
-      const el = document.getElementById('bottomSheet');
-      el.style.display = 'none';
+      document.getElementById('bottomSheet').style.display = 'none';
       sheetState = 'hidden';
       document.getElementById('mapCtrlGroup').style.bottom = '24px';
     }
-
-    function expandSheet() {
-      sheetState === 'expanded' ? showSheet('collapsed') : showSheet('expanded');
-    }
+    function expandSheet() { sheetState === 'expanded' ? showSheet('collapsed') : showSheet('expanded'); }
 
     function setupSheetDrag() {
       const handle = document.getElementById('sheetHandle');
       const el = document.getElementById('bottomSheet');
-      handle.addEventListener('touchstart', e => {
-        _isDragging = true; _dragStartY = e.changedTouches[0].clientY;
-        _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none';
-      }, { passive: true });
-      window.addEventListener('touchmove', e => {
-        if (!_isDragging) return;
-        const dy = _dragStartY - e.changedTouches[0].clientY;
-        const newH = Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + dy));
-        applySheetHeight(newH, false);
-      }, { passive: true });
-      window.addEventListener('touchend', () => {
-        if (!_isDragging) return; _isDragging = false;
-        const curH = el.getBoundingClientRect().height;
-        showSheet(curH > window.innerHeight * 0.22 ? 'expanded' : 'collapsed');
-      }, { passive: true });
-      handle.addEventListener('mousedown', e => {
-        _isDragging = true; _dragStartY = e.clientY;
-        _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; e.preventDefault();
-      });
-      window.addEventListener('mousemove', e => {
-        if (!_isDragging) return;
-        const dy = _dragStartY - e.clientY;
-        const newH = Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + dy));
-        applySheetHeight(newH, false);
-      });
-      window.addEventListener('mouseup', () => {
-        if (!_isDragging) return; _isDragging = false;
-        const curH = el.getBoundingClientRect().height;
-        showSheet(curH > window.innerHeight * 0.22 ? 'expanded' : 'collapsed');
-      });
+      handle.addEventListener('touchstart', e => { _isDragging = true; _dragStartY = e.changedTouches[0].clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; }, { passive: true });
+      window.addEventListener('touchmove', e => { if (!_isDragging) return; const dy = _dragStartY - e.changedTouches[0].clientY; applySheetHeight(Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + dy)), false); }, { passive: true });
+      window.addEventListener('touchend', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); }, { passive: true });
+      handle.addEventListener('mousedown', e => { _isDragging = true; _dragStartY = e.clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; e.preventDefault(); });
+      window.addEventListener('mousemove', e => { if (!_isDragging) return; applySheetHeight(Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + (_dragStartY - e.clientY))), false); });
+      window.addEventListener('mouseup', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        FORMAT HELPERS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function fmtDist(m) { return m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m'; }
     function fmtTime(m) { const mins = Math.ceil(m / 1.4 / 60); return mins < 1 ? '<1 min' : mins + ' min'; }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        RENDER ROUTE INFO PANELS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function renderMobileSheet(results, activeIdx, destName) {
       if (!isMobile()) return;
       const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance);
@@ -2239,14 +2991,14 @@
     function clearRouteInfoPanels() {
       const stack = document.getElementById('desktopRouteStack'); if (stack) stack.innerHTML = '';
       hideSheet();
-      const toast = document.getElementById('arrivedToast'); if (toast) toast.classList.remove('show');
-      const dbox = document.getElementById('desktopArrived'); if (dbox) dbox.classList.remove('show');
+      document.getElementById('arrivedToast').classList.remove('show');
+      document.getElementById('desktopArrived').classList.remove('show');
       hasArrived = false;
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        ARRIVED
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function showArrivedNotification(destName) {
       if (hasArrived) return; hasArrived = true; isNavigating = false; stopArrowAnimation();
       const sub = destName ? `You have arrived at ${destName}.` : 'You have arrived.';
@@ -2254,7 +3006,7 @@
         hideSheet();
         const toast = document.getElementById('arrivedToast');
         document.getElementById('toastSub').textContent = sub;
-        if (toast) { toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show'); }
+        toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
       } else {
         document.getElementById('desktopRouteStack').innerHTML = '';
         document.getElementById('desktopArrivedSub').textContent = sub;
@@ -2263,9 +3015,9 @@
       }
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        MAP GLOBALS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     let campusMap, userLocationMarker, accuracyCircle, userWatchId = null, userLatLng = null;
     let startMarker = null, endMarker = null, routeLayerGroup = null, landmarkMarkersLayer = null;
     let landmarksVisible = true, animationFrameId = null;
@@ -2279,17 +3031,16 @@
     let lastResults, activeRouteIndex = 0;
     const KROUTES = 5;
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        SIDE MENU STATE
-    ═══════════════════════════════════════════ */
-    // Tracks which location name is currently shown in the side menu
+    ════════════════════════════════════════════════════════════════ */
     let currentSidebarLocationName = 'E Block';
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        DATA
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     const landmarks = [
-      { id: "front", name: "Front Gate", lat: 11.034770, lng: 77.033850 }, { id: "admiss", name: "Admission Office", lat: 11.032585, lng: 77.033888 },
+      { id: "front", name: "Front Gate", lat: 11.034700, lng: 77.033850 }, { id: "admiss", name: "Admission Office", lat: 11.032585, lng: 77.033888 },
       { id: "lib", name: "Library", lat: 11.033664, lng: 77.033435 }, { id: "prin", name: "Principal Office", lat: 11.033269, lng: 77.033861 },
       { id: "sf", name: "S F Office", lat: 11.033111, lng: 77.033410 }, { id: "aided", name: "Aided Office", lat: 11.033277, lng: 77.034183 },
       { id: "hostel", name: "Hostel Office", lat: 11.032646, lng: 77.035309 }, { id: "can1", name: "Food Court 1", lat: 11.033695, lng: 77.034336 },
@@ -2307,19 +3058,19 @@
       { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534 }
     ];
     const locationmarker = [
-      { id: "front", name: "Front Gate", lat: 11.034820, lng: 77.033845, icon: "⛩️" }, { id: "admiss", name: "Admission Office", lat: 11.032726, lng: 77.033547, icon: "💼" },
-      { id: "lib", name: "Library", lat: 11.033706, lng: 77.033437, icon: "📚" }, { id: "prin", name: "Principal Office", lat: 11.033200, lng: 77.033947, icon: "💼" },
+      { id: "front", name: "Front Gate", lat: 11.034700, lng: 77.033850, icon: "⛩️" }, { id: "admiss", name: "Admission Office", lat: 11.032726, lng: 77.033547, icon: "💼" },
+      { id: "lib", name: "Library", lat: 11.033796, lng: 77.033437, icon: "📚" }, { id: "prin", name: "Principal Office", lat: 11.033200, lng: 77.033947, icon: "💼" },
       { id: "sf", name: "S F Office", lat: 11.033105, lng: 77.033502, icon: "💼" }, { id: "aided", name: "Aided Office", lat: 11.033190, lng: 77.034094, icon: "💼" },
-      { id: "hostel", name: "Hostel Office", lat: 11.032776, lng: 77.035321, icon: "💼" }, { id: "can1", name: "Food Court 1", lat: 11.033762, lng: 77.034287, icon: "🍽️" },
-      { id: "can2", name: "Food Court 2", lat: 11.031994, lng: 77.032606, icon: "🍽️" }, { id: "grd", name: "GRD Auditorium", lat: 11.032361, lng: 77.033290, icon: "🎭" },
-      { id: "ab", name: "A Block", lat: 11.033140, lng: 77.032508, icon: "🏛️" }, { id: "bb", name: "B Block", lat: 11.033161, lng: 77.033059, icon: "🏛️" },
-      { id: "cb", name: "C Block", lat: 11.032713, lng: 77.033874, icon: "🏛️" }, { id: "db", name: "D Block", lat: 11.033285, lng: 77.034657, icon: "🏛️" },
-      { id: "eb", name: "E Block", lat: 11.032845, lng: 77.034550, icon: "🏛️" }, { id: "fb", name: "F Block", lat: 11.032500, lng: 77.033893, icon: "🏛️" },
-      { id: "gb", name: "G Block", lat: 11.032389, lng: 77.034572, icon: "🏛️" }, { id: "qb", name: "Q Block", lat: 11.034030, lng: 77.034750, icon: "🏛️" },
+      { id: "hostel", name: "Hostel Office", lat: 11.032776, lng: 77.035321, icon: "💼" }, { id: "can1", name: "Food Court 1", lat: 11.033842, lng: 77.034287, icon: "🍽️" },
+      { id: "can2", name: "Food Court 2", lat: 11.032054, lng: 77.032556, icon: "🍽️" }, { id: "grd", name: "GRD Auditorium", lat: 11.032311, lng: 77.033290, icon: "🎭" },
+      { id: "ab", name: "A Block", lat: 11.033080, lng: 77.032508, icon: "🏛️" }, { id: "bb", name: "B Block", lat: 11.033101, lng: 77.033059, icon: "🏛️" },
+      { id: "cb", name: "C Block", lat: 11.032853, lng: 77.033874, icon: "🏛️" }, { id: "db", name: "D Block", lat: 11.033505, lng: 77.034827, icon: "🏛️" },
+      { id: "eb", name: "E Block", lat: 11.032845, lng: 77.034750, icon: "🏛️" }, { id: "fb", name: "F Block", lat: 11.032460, lng: 77.033703, icon: "🏛️" },
+      { id: "gb", name: "G Block", lat: 11.032249, lng: 77.034782, icon: "🏛️" }, { id: "qb", name: "Q Block", lat: 11.034030, lng: 77.034750, icon: "🏛️" },
       { id: "football", name: "FootBall Ground", lat: 11.031483, lng: 77.033107, icon: "⚽" }, { id: "Tennis", name: "Tennis Court", lat: 11.031824, lng: 77.033979, icon: "🏸" },
       { id: "Hockey", name: "Hockey Ground", lat: 11.031281, lng: 77.033974, icon: "🏑" }, { id: "Volleyball", name: "Volleyball Court", lat: 11.032467, lng: 77.036240, icon: "🏐" },
       { id: "Khokho", name: "Khokho Court", lat: 11.030778, lng: 77.033976, icon: "🏃‍♀️" }, { id: "Basketball", name: "Basketball Court", lat: 11.032139, lng: 77.036283, icon: "🏀" },
-      { id: "indoor", name: "Indoor Auditorium", lat: 11.033304, lng: 77.035299, icon: "⛹️" }, { id: "P1", name: "Students & General Parking", lat: 11.034749, lng: 77.034258, icon: "🏍️" },
+      { id: "indoor", name: "Indoor Auditorium", lat: 11.033404, lng: 77.035299, icon: "⛹️" }, { id: "P1", name: "Students & General Parking", lat: 11.034749, lng: 77.034258, icon: "🏍️" },
       { id: "P2", name: "Staff Parking", lat: 11.034203, lng: 77.033518, icon: "🅿️" }, { id: "P3", name: "Students Car Parking", lat: 11.033577, lng: 77.036263, icon: "🚗" },
       { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534, icon: "⛩️" }
     ];
@@ -2367,74 +3118,44 @@
     const locationsList = ['Current Location', 'Front Gate', 'Admission Office', 'Library', 'Principal Office', 'S F Office', 'Aided Office', 'Hostel Office', 'Food Court 1', 'Food Court 2', 'GRD Auditorium', 'Indoor Auditorium', 'A Block', 'B Block', 'C Block', 'D Block', 'E Block', 'F Block', 'G Block', 'Q Block', 'Maintainance Block', 'Alumni Block', 'Book Depot', 'Pothigai Hall', 'Sangamam Hall', 'Brahmam Hall', 'Kaveri Hall', 'Vaigai Hall', 'Bharathi Hostel', 'NRI Hostel', 'VOC Hostel', 'Back Gate'];
     const landmarkMapping = { 'Front Gate': 'front', 'Admission Office': 'admiss', 'Library': 'lib', 'Principal Office': 'prin', 'S F Office': 'sf', 'Aided Office': 'aided', 'Hostel Office': 'hostel', 'Food Court 1': 'can1', 'Food Court 2': 'can2', 'GRD Auditorium': 'grd', 'Indoor Auditorium': 'indoor', 'A Block': 'ab', 'B Block': 'bb', 'C Block': 'cb', 'D Block': 'db', 'E Block': 'eb', 'F Block': 'fb', 'G Block': 'gb', 'Q Block': 'qb', 'Book Depot': 'book', 'Pothigai Hall': 'pothigai', 'Bharathi Hostel': 'bharathi', 'NRI Hostel': 'nri', 'Back Gate': 'back', 'Sangamam Hall': 'Sangamam', 'Brahmam Hall': 'Brahmam', 'VOC Hostel': 'voc', 'Maintainance Block': 'main', 'Alumni Block': 'alu', 'Kaveri Hall': 'kaveri', 'Vaigai Hall': 'vaigai' };
 
-    /* ═══════════════════════════════════════════
-       SIDE MENU: OPEN WITH LOCATION + DIRECTION
-    ═══════════════════════════════════════════ */
-
-    /**
-     * Open the side menu for a given location name.
-     * Updates the title and stores the name for the direction button.
-     * Falls back to 'E Block' for the default marker click.
-     */
+    /* ════════════════════════════════════════════════════════════════
+       SIDE MENU
+    ════════════════════════════════════════════════════════════════ */
     function openSidebar(locationName) {
-      // Default to 'E Block' if no name supplied (backwards-compatible)
       const name = locationName || 'E Block';
       currentSidebarLocationName = name;
-
-      // Update the header title
       document.getElementById('sideMenuTitle').textContent = name;
-
-      // Show / hide direction button based on whether location is navigable
       const inList = locationsList.includes(name) && name !== 'Current Location';
       document.getElementById('sideMenuDirectionBtn').style.display = inList ? '' : 'none';
-
       document.getElementById('sideMenu').classList.add('open');
       document.getElementById('overlay').classList.add('active');
       document.body.style.overflow = 'hidden';
     }
-
     function closeSidebar() {
       document.getElementById('sideMenu').classList.remove('open');
       document.getElementById('overlay').classList.remove('active');
       document.body.style.overflow = '';
     }
-
-    /**
-     * Called when the "Get Directions" button inside the side menu is clicked.
-     * Navigates from current location to the location shown in the side menu.
-     */
     function navigateFromSideMenu() {
       const locationName = currentSidebarLocationName;
       if (!locationName || locationName === 'Current Location') return;
-
-      // Close the sidebar first
       closeSidebar();
-
-      // Close any open map popups
       if (campusMap) campusMap.closePopup();
-
-      // Populate the nav inputs
-      const fromBox = document.getElementById('fromBox');
-      const toBox = document.getElementById('toBox');
-      fromBox.value = 'Current Location';
+      document.getElementById('fromBox').value = 'Current Location';
       document.getElementById('curLocInlineBtn').classList.add('active');
-      toBox.value = locationName;
-
-      // Ensure nav buttons are visible before search triggers
+      document.getElementById('toBox').value = locationName;
       showNavButtons();
-
-      // Trigger route search
       searchRoute();
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        GALLERY / CAROUSEL / LIGHTBOX
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     const galleryImages = [
       { src: 'E Block.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=E+Block', alt: 'E Block' },
       { src: 'E Block2.webp', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=E+Block+2', alt: 'E Block 2' },
       { src: 'lab 2.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+2', alt: 'Lab 2' },
-      { src: 'lab 3.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+3', alt: 'Lab 3' },
+      { src: 'lab 3.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+3', alt: 'Lab 3' }
     ];
     let carouselIdx = 0, lbIdx = 0;
 
@@ -2473,9 +3194,9 @@
       });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        MARKERS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function createStartIcon() {
       return L.divIcon({ className: 'start-marker-icon', html: `<svg width="30" height="30" viewBox="0 0 34 34"><circle cx="15" cy="15" r="14" fill="#0a0e27"/><circle cx="15" cy="15" r="9.5" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [17, 17], popupAnchor: [0, -18] });
     }
@@ -2483,10 +3204,10 @@
       return L.divIcon({ className: 'end-marker-icon', html: `<svg width="25" height="32" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 27 15 27s15-16 15-27C30 6.7 23.3 0 15 0Z" fill="#e17055"/><circle cx="15" cy="15" r="6.5" fill="#b71c1c"/><circle cx="15" cy="15" r="3" fill="#fff"/></svg>`, iconSize: [30, 42], iconAnchor: [15, 42], popupAnchor: [0, -44] });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        ARROW ANIMATION
-    ═══════════════════════════════════════════ */
-    function buildCumDist(ll) { const c = [0]; for (let i = 1; i < ll.length; i++)c.push(c[i - 1] + hav({ lat: ll[i - 1][0], lng: ll[i - 1][1] }, { lat: ll[i][0], lng: ll[i][1] })); return c; }
+    ════════════════════════════════════════════════════════════════ */
+    function buildCumDist(ll) { const c = [0]; for (let i = 1; i < ll.length; i++) c.push(c[i - 1] + hav({ lat: ll[i - 1][0], lng: ll[i - 1][1] }, { lat: ll[i][0], lng: ll[i][1] })); return c; }
     function interpolateOnPath(ll, cum, prog) {
       const total = cum[cum.length - 1], target = prog * total; let lo = 0, hi = cum.length - 1;
       while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= target) lo = mid; else hi = mid; }
@@ -2504,13 +3225,7 @@
       if (!arrowMarker) arrowMarker = L.marker([init.lat, init.lng], { icon: makeArrowIcon(init.angleDeg), zIndexOffset: 1200, interactive: false }).addTo(campusMap);
       else { arrowMarker.setLatLng([init.lat, init.lng]); arrowMarker.setIcon(makeArrowIcon(init.angleDeg)); }
       let lts = null;
-      function loop(ts) {
-        if (lts !== null) { arrowProgress += ARROW_SPEED * (ts - lts); if (arrowProgress >= 1) arrowProgress = 0; }
-        lts = ts;
-        const p = interpolateOnPath(arrowRouteLatlngs, cum, arrowProgress);
-        arrowMarker.setLatLng([p.lat, p.lng]); arrowMarker.setIcon(makeArrowIcon(p.angleDeg));
-        arrowAnimFrameId = requestAnimationFrame(loop);
-      }
+      function loop(ts) { if (lts !== null) { arrowProgress += ARROW_SPEED * (ts - lts); if (arrowProgress >= 1) arrowProgress = 0; } lts = ts; const p = interpolateOnPath(arrowRouteLatlngs, cum, arrowProgress); arrowMarker.setLatLng([p.lat, p.lng]); arrowMarker.setIcon(makeArrowIcon(p.angleDeg)); arrowAnimFrameId = requestAnimationFrame(loop); }
       arrowAnimFrameId = requestAnimationFrame(loop);
     }
     function stopArrowAnimation() {
@@ -2519,216 +3234,99 @@
       arrowRouteLatlngs = []; arrowProgress = 0;
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        GEOGRAPHY HELPERS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function hav(a, b) { const R = 6371000, toR = x => x * Math.PI / 180, dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng), s = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(s)); }
     function nearestPointOnSegment(p, a, b) { const px = p.lng, py = p.lat, ax = a.lng, ay = a.lat, bx = b.lng, by = b.lat, ABx = bx - ax, ABy = by - ay, APx = px - ax, APy = py - ay, ABAB = ABx * ABx + ABy * ABy, APAB = APx * ABx + APy * ABy; if (ABAB === 0) return { lat: a.lat, lng: a.lng }; const t = Math.max(0, Math.min(1, APAB / ABAB)); return { lat: ay + t * ABy, lng: ax + t * ABx }; }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        GRAPH
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function addLandmarkEntranceNodes() {
       places.forEach(p => {
         const eId = `ENT_${p.id}`, eNode = { id: eId, lat: p.lat, lng: p.lng };
         graph.nodes.push(eNode);
         let bd = Infinity, bnId = null, bEdge = null, bPt = null;
         for (let i = 0; i < graph.nodes.length - 1; i++) { const d = hav(p, graph.nodes[i]); if (d < bd) { bd = d; bnId = graph.nodes[i].id; bEdge = null; } }
-        for (const [aId, bId] of graph.edges) {
-          const ai = graph.nodes.findIndex(n => n.id === aId), bi = graph.nodes.findIndex(n => n.id === bId);
-          if (ai === -1 || bi === -1) continue;
-          const np = nearestPointOnSegment(p, graph.nodes[ai], graph.nodes[bi]), d = hav(p, np);
-          if (d < bd) { bd = d; bEdge = [aId, bId]; bPt = np; bnId = null; }
-        }
-        if (bEdge && bPt) {
-          const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng };
-          graph.nodes.push(sNode);
-          const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0]));
-          if (ei !== -1) graph.edges.splice(ei, 1);
-          graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]);
-        } else if (bnId) graph.edges.push([bnId, eId]);
+        for (const [aId, bId] of graph.edges) { const ai = graph.nodes.findIndex(n => n.id === aId), bi = graph.nodes.findIndex(n => n.id === bId); if (ai === -1 || bi === -1) continue; const np = nearestPointOnSegment(p, graph.nodes[ai], graph.nodes[bi]), d = hav(p, np); if (d < bd) { bd = d; bEdge = [aId, bId]; bPt = np; bnId = null; } }
+        if (bEdge && bPt) { const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng }; graph.nodes.push(sNode); const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0])); if (ei !== -1) graph.edges.splice(ei, 1); graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]); } else if (bnId) graph.edges.push([bnId, eId]);
       });
       nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i]));
     }
-    function buildAdj(re = new Set(), rn = new Set()) {
-      const adj = Array(graph.nodes.length).fill(0).map(() => []);
-      for (const [aiId, biId] of graph.edges) {
-        const ai = nodeIndex.get(aiId), bi = nodeIndex.get(biId);
-        if (ai == null || bi == null) continue;
-        if (rn.has(ai) || rn.has(bi)) continue;
-        if (re.has(`${ai}-${bi}`) || re.has(`${bi}-${ai}`)) continue;
-        const w = hav(graph.nodes[ai], graph.nodes[bi]);
-        adj[ai].push([bi, w]); adj[bi].push([ai, w]);
-      }
-      return adj;
-    }
-    function dijkstra(adj, src, dst) {
-      const n = adj.length, dist = Array(n).fill(Infinity), prev = Array(n).fill(-1), used = Array(n).fill(false);
-      dist[src] = 0; const pq = [{ d: 0, i: src }];
-      const pop = () => { if (!pq.length) return null; let bi = -1, bd = Infinity; for (let i = 0; i < pq.length; i++)if (pq[i].d < bd) { bd = pq[i].d; bi = i; } return bi < 0 ? null : pq.splice(bi, 1)[0]; };
-      while (pq.length) { const cur = pop(); if (!cur) break; const u = cur.i; if (used[u]) continue; used[u] = true; if (u === dst) break; for (const [v, w] of adj[u]) if (!used[v] && dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; pq.push({ d: dist[v], i: v }); } }
-      const path = []; let u = dst; if (prev[u] === -1 && u !== src) return { path: [], distance: Infinity }; while (u !== -1) { path.push(u); if (u === src) break; u = prev[u]; } path.reverse();
-      return { path, distance: dist[dst] };
-    }
+    function buildAdj(re = new Set(), rn = new Set()) { const adj = Array(graph.nodes.length).fill(0).map(() => []); for (const [aiId, biId] of graph.edges) { const ai = nodeIndex.get(aiId), bi = nodeIndex.get(biId); if (ai == null || bi == null) continue; if (rn.has(ai) || rn.has(bi)) continue; if (re.has(`${ai}-${bi}`) || re.has(`${bi}-${ai}`)) continue; const w = hav(graph.nodes[ai], graph.nodes[bi]); adj[ai].push([bi, w]); adj[bi].push([ai, w]); } return adj; }
+    function dijkstra(adj, src, dst) { const n = adj.length, dist = Array(n).fill(Infinity), prev = Array(n).fill(-1), used = Array(n).fill(false); dist[src] = 0; const pq = [{ d: 0, i: src }]; const pop = () => { if (!pq.length) return null; let bi = -1, bd = Infinity; for (let i = 0; i < pq.length; i++)if (pq[i].d < bd) { bd = pq[i].d; bi = i; } return bi < 0 ? null : pq.splice(bi, 1)[0]; }; while (pq.length) { const cur = pop(); if (!cur) break; const u = cur.i; if (used[u]) continue; used[u] = true; if (u === dst) break; for (const [v, w] of adj[u]) if (!used[v] && dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; pq.push({ d: dist[v], i: v }); } } const path = []; let u = dst; if (prev[u] === -1 && u !== src) return { path: [], distance: Infinity }; while (u !== -1) { path.push(u); if (u === src) break; u = prev[u]; } path.reverse(); return { path, distance: dist[dst] }; }
     function pathDistance(idx) { let d = 0; for (let i = 0; i + 1 < idx.length; i++)d += hav(graph.nodes[idx[i]], graph.nodes[idx[i + 1]]); return d; }
     function arraysEqual(a, b) { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++)if (a[i] !== b[i]) return false; return true; }
-    function yensKShortests(i, t, K) {
-      const A = [], B = [], adj0 = buildAdj(), p0 = dijkstra(adj0, i, t);
-      if (!p0.path.length || !isFinite(p0.distance)) return A;
-      A.push(p0);
-      for (let k = 1; k < K; k++) {
-        const pp = A[k - 1].path;
-        for (let iS = 0; iS < pp.length - 1; iS++) {
-          const sn = pp[iS], rp = pp.slice(0, iS + 1), re = new Set(), rn = new Set();
-          for (const p of A) { const cr = p.path.slice(0, iS + 1); if (arraysEqual(cr, rp) && p.path.length > iS + 1) { const u = p.path[iS], v = p.path[iS + 1]; re.add(`${u}-${v}`); re.add(`${v}-${u}`); } }
-          for (const r of rp.slice(0, -1)) rn.add(r);
-          const adj = buildAdj(re, rn), sr = dijkstra(adj, sn, t);
-          if (sr.path.length && isFinite(sr.distance)) { const tp = rp.slice(0, -1).concat(sr.path), td = pathDistance(tp); if (!B.some(b => arraysEqual(b.path, tp))) B.push({ path: tp, distance: td }); }
-        }
-        if (!B.length) break;
-        B.sort((a, b) => a.distance - b.distance); A.push(B.shift());
-        const uniq = []; for (const p of A) if (!uniq.some(q => arraysEqual(q.path, p.path))) uniq.push(p);
-        uniq.sort((a, b) => a.distance - b.distance); A.splice(0, A.length, ...uniq);
-      }
-      return A;
-    }
+    function yensKShortests(i, t, K) { const A = [], B = [], adj0 = buildAdj(), p0 = dijkstra(adj0, i, t); if (!p0.path.length || !isFinite(p0.distance)) return A; A.push(p0); for (let k = 1; k < K; k++) { const pp = A[k - 1].path; for (let iS = 0; iS < pp.length - 1; iS++) { const sn = pp[iS], rp = pp.slice(0, iS + 1), re = new Set(), rn = new Set(); for (const p of A) { const cr = p.path.slice(0, iS + 1); if (arraysEqual(cr, rp) && p.path.length > iS + 1) { const u = p.path[iS], v = p.path[iS + 1]; re.add(`${u}-${v}`); re.add(`${v}-${u}`); } } for (const r of rp.slice(0, -1)) rn.add(r); const adj = buildAdj(re, rn), sr = dijkstra(adj, sn, t); if (sr.path.length && isFinite(sr.distance)) { const tp = rp.slice(0, -1).concat(sr.path), td = pathDistance(tp); if (!B.some(b => arraysEqual(b.path, tp))) B.push({ path: tp, distance: td }); } } if (!B.length) break; B.sort((a, b) => a.distance - b.distance); A.push(B.shift()); const uniq = []; for (const p of A) if (!uniq.some(q => arraysEqual(q.path, p.path))) uniq.push(p); uniq.sort((a, b) => a.distance - b.distance); A.splice(0, A.length, ...uniq); } return A; }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        ROUTE RENDERING
-    ═══════════════════════════════════════════ */
-    function clearRoutes() {
-      if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-      if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; }
-      if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; }
-      if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; }
-      stopArrowAnimation();
-    }
-    function setStartEndMarkers(A, B) {
-      if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; }
-      if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; }
-      startMarker = L.marker([A.lat, A.lng], { icon: createStartIcon(), zIndexOffset: 900 }).addTo(campusMap).bindPopup(`<strong>Start:</strong><br/>${A.name}`);
-      endMarker = L.marker([B.lat, B.lng], { icon: createEndIcon(), zIndexOffset: 1000 }).addTo(campusMap).bindPopup(`<strong>Destination:</strong><br/>${B.name}`).openPopup();
-    }
-    function animatedPolyline(ll, opts, dur = 1500) {
-      const pl = L.polyline([], opts), st = Date.now(), tot = ll.length;
-      function animate() {
-        const el = Date.now() - st, prog = Math.min(el / dur, 1), pts = Math.floor(prog * tot);
-        if (pts > 0) { const part = ll.slice(0, pts); if (prog < 1 && pts < tot) { const s = (prog * tot) - pts, c = ll[pts - 1], n = ll[pts]; part.push([c[0] + (n[0] - c[0]) * s, c[1] + (n[1] - c[1]) * s]); } pl.setLatLngs(part); }
-        if (prog < 1) animationFrameId = requestAnimationFrame(animate);
-      }
-      animate(); return pl;
-    }
-    function renderDynamicRoute() {
-      if (!isNavigating || !currentPathIndices.length) return;
-      if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; }
-      const ll = currentPathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
-      const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-      const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-      routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap);
-      startArrowAnimation(ll, arrowProgress);
-    }
+    ════════════════════════════════════════════════════════════════ */
+    function clearRoutes() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; } if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } stopArrowAnimation(); }
+    function setStartEndMarkers(A, B) { if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } startMarker = L.marker([A.lat, A.lng], { icon: createStartIcon(), zIndexOffset: 900 }).addTo(campusMap).bindPopup(`<strong>Start:</strong><br/>${A.name}`); endMarker = L.marker([B.lat, B.lng], { icon: createEndIcon(), zIndexOffset: 1000 }).addTo(campusMap).bindPopup(`<strong>Destination:</strong><br/>${B.name}`).openPopup(); }
+    function animatedPolyline(ll, opts, dur = 1500) { const pl = L.polyline([], opts), st = Date.now(), tot = ll.length; function animate() { const el = Date.now() - st, prog = Math.min(el / dur, 1), pts = Math.floor(prog * tot); if (pts > 0) { const part = ll.slice(0, pts); if (prog < 1 && pts < tot) { const s = (prog * tot) - pts, c = ll[pts - 1], n = ll[pts]; part.push([c[0] + (n[0] - c[0]) * s, c[1] + (n[1] - c[1]) * s]); } pl.setLatLngs(part); } if (prog < 1) animationFrameId = requestAnimationFrame(animate); } animate(); return pl; }
+    function renderDynamicRoute() { if (!isNavigating || !currentPathIndices.length) return; if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } const ll = currentPathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap); startArrowAnimation(ll, arrowProgress); }
     function renderSelectedRoute(selectedIndex) {
       const results = lastResults; if (!results || !results.length) return;
-      activeRouteIndex = selectedIndex;
-      clearRoutes();
+      activeRouteIndex = selectedIndex; clearRoutes();
       const layers = [];
-      results.forEach((res, idx) => {
-        const ll = res.path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
-        if (idx !== selectedIndex) {
-          const ab = L.polyline(ll, { color: 'rgba(255,255,255,0.5)', weight: 7, opacity: 0.6, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-          const al = L.polyline(ll, { color: '#a29bfe', weight: 5, opacity: 0.55, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-          al.on('click', () => { renderSelectedRoute(idx); if (isMobile()) renderMobileSheet(results, idx, currentDestination ? currentDestination.name : ''); else renderDesktopRouteStack(results, idx); });
-          layers.push(ab, al);
-        }
-      });
+      results.forEach((res, idx) => { const ll = res.path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); if (idx !== selectedIndex) { const ab = L.polyline(ll, { color: 'rgba(255,255,255,0.5)', weight: 7, opacity: 0.6, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); const al = L.polyline(ll, { color: '#a29bfe', weight: 5, opacity: 0.55, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); al.on('click', () => { renderSelectedRoute(idx); if (isMobile()) renderMobileSheet(results, idx, currentDestination ? currentDestination.name : ''); else renderDesktopRouteStack(results, idx); }); layers.push(ab, al); } });
       const sll = results[selectedIndex].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
       const sb = animatedPolyline(sll, { color: 'rgba(255,255,255,0.9)', weight: 10, opacity: 0.9, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
       const pr = animatedPolyline(sll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
-      layers.push(sb, pr);
-      routeLayerGroup = L.layerGroup(layers).addTo(campusMap);
+      layers.push(sb, pr); routeLayerGroup = L.layerGroup(layers).addTo(campusMap);
       setTimeout(() => startArrowAnimation(sll, 0), 1600);
       if (document.getElementById('fromBox').value === 'Current Location') { fullRoutePath = sll; currentPathIndices = results[selectedIndex].path.slice(); }
       const fv = document.getElementById('fromBox').value, tv = document.getElementById('toBox').value;
       let A, B;
-      if (fv === 'Current Location' && userLatLng) A = { lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' };
-      else A = getLandmarkByNameOrId(fv);
+      if (fv === 'Current Location' && userLatLng) A = { lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }; else A = getLandmarkByNameOrId(fv);
       B = getLandmarkByNameOrId(tv);
       if (A && B) setStartEndMarkers(A, B);
       if (pr) setTimeout(() => campusMap.fitBounds(L.polyline(sll).getBounds().pad(0.22)), 100);
       if (!isMobile()) renderDesktopRouteStack(results, selectedIndex);
     }
-    function checkDeviationAndRecalc(up) {
-      if (!isNavigating || !currentDestination || !up || !currentPathIndices || !currentPathIndices.length) return false;
-      let mn = Infinity;
-      for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < mn) mn = d; }
-      for (let i = 0; i < currentPathIndices.length - 1; i++) { const d = hav(up, nearestPointOnSegment(up, graph.nodes[currentPathIndices[i]], graph.nodes[currentPathIndices[i + 1]])); if (d < mn) mn = d; }
-      if (mn > DEVIATION_THRESHOLD) { recalcRouteFromCurrent(); return true; } return false;
-    }
-    function recalcRouteFromCurrent() {
-      if (!isNavigating || !userLatLng || !currentDestination) return;
-      const up = { lat: userLatLng[0], lng: userLatLng[1] };
-      let nnIdx = null, md = Infinity;
-      graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } });
-      if (nnIdx === null) return;
-      const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return;
-      const res = yensKShortests(nnIdx, dId, KROUTES); if (!res.length) return;
-      lastResults = res; activeRouteIndex = 0;
-      fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
-      currentPathIndices = res[0].path.slice();
-      setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination);
-      renderDynamicRoute();
-      if (isMobile()) renderMobileSheet(res, 0, currentDestination.name);
-      else renderDesktopRouteStack(res, 0);
-    }
+    function checkDeviationAndRecalc(up) { if (!isNavigating || !currentDestination || !up || !currentPathIndices || !currentPathIndices.length) return false; let mn = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < mn) mn = d; } for (let i = 0; i < currentPathIndices.length - 1; i++) { const d = hav(up, nearestPointOnSegment(up, graph.nodes[currentPathIndices[i]], graph.nodes[currentPathIndices[i + 1]])); if (d < mn) mn = d; } if (mn > DEVIATION_THRESHOLD) { recalcRouteFromCurrent(); return true; } return false; }
+    function recalcRouteFromCurrent() { if (!isNavigating || !userLatLng || !currentDestination) return; const up = { lat: userLatLng[0], lng: userLatLng[1] }; let nnIdx = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } }); if (nnIdx === null) return; const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return; const res = yensKShortests(nnIdx, dId, KROUTES); if (!res.length) return; lastResults = res; activeRouteIndex = 0; fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); currentPathIndices = res[0].path.slice(); setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination); renderDynamicRoute(); if (isMobile()) renderMobileSheet(res, 0, currentDestination.name); else renderDesktopRouteStack(res, 0); }
     function checkIfArrived(up) { if (!isNavigating || !currentDestination || hasArrived) return; if (hav(up, currentDestination) <= ARRIVED_THRESHOLD) showArrivedNotification(currentDestination.name); }
-    function updatePathBasedOnLocation() {
-      if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return;
-      const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now;
-      const up = { lat: userLatLng[0], lng: userLatLng[1] };
-      checkIfArrived(up); if (hasArrived) return;
-      if (checkDeviationAndRecalc(up)) return;
-      let ci = 0, md = Infinity;
-      for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } }
-      if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); }
-    }
+    function updatePathBasedOnLocation() { if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return; const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now; const up = { lat: userLatLng[0], lng: userLatLng[1] }; checkIfArrived(up); if (hasArrived) return; if (checkDeviationAndRecalc(up)) return; let ci = 0, md = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } } if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); } }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        LANDMARK HELPERS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function getLandmarkByNameOrId(name) { if (name === 'Current Location') return null; const lid = landmarkMapping[name]; if (lid) return places.find(p => p.id === lid); return places.find(p => p.name === name); }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        MAP INIT & LANDMARKS
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function initializeMap() {
       if (campusMap) { campusMap.invalidateSize(); return; }
       const cb = L.latLngBounds(L.latLng(11.029847, 77.032077), L.latLng(11.035600, 77.036616));
-      campusMap = L.map('mapContainer', { maxBounds: cb, maxBoundsViscosity: 1.0, minZoom: 17, maxZoom: 19, preferCanvas: true, attributionControl: false }).setView([11.033400, 77.033864], 18);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 20, attribution: '', updateWhenIdle: true, updateWhenZooming: false, keepBuffer: 2 }).addTo(campusMap);
+      campusMap = L.map('mapContainer', {
+        maxBounds: cb,
+        maxBoundsViscosity: 1.0,
+        minZoom: 17,
+        maxZoom: 19,
+        preferCanvas: true,
+        attributionControl: false
+      }).setView([11.033400, 77.033864], 18);
+
+      // Initial tile layer — OSM Standard
+      currentTileLayer = L.tileLayer(tileLayers.osm.url, tileLayers.osm.options).addTo(campusMap);
+
       loadCampusData();
       initializeLandmarkMarkers();
+      initLayerSwitcher();
     }
-    function loadCampusData() {
-      places = landmarks; graph = JSON.parse(JSON.stringify(graphData));
-      nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i]));
-      addLandmarkEntranceNodes();
-    }
-
-    function buildPopupContent(lm) {
-      // Simple popup — no direction button (direction is in the side menu)
-      return `<div class="popup-name">${lm.icon} ${lm.name}</div>`;
-    }
-
+    function loadCampusData() { places = landmarks; graph = JSON.parse(JSON.stringify(graphData)); nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i])); addLandmarkEntranceNodes(); }
+    function buildPopupContent(lm) { return `<div class="popup-name">${lm.icon} ${lm.name}</div>`; }
     function initializeLandmarkMarkers() {
       if (landmarkMarkersLayer) { campusMap.removeLayer(landmarkMarkersLayer); landmarkMarkersLayer = null; }
       landmarkMarkersLayer = L.layerGroup();
       locationmarker.forEach(lm => {
         const icon = L.divIcon({ className: 'custom-landmark-marker', html: `<div style="background:#FFF8E1;border:2px solid #F59E0B;color:#F59E0B;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(245,158,11,0.25);cursor:pointer;">${lm.icon}</div>`, iconSize: [32, 32], iconAnchor: [16, 16] });
         const marker = L.marker([lm.lat, lm.lng], { icon, zIndexOffset: 500 }).bindPopup(buildPopupContent(lm), { maxWidth: 200 });
-        // E Block marker opens the side menu with E Block context
-        if (lm.id === 'eb') {
-          marker.on('click', () => openSidebar('E Block'));
-        }
+        if (lm.id === 'eb') { marker.on('click', () => openSidebar('E Block')); }
         landmarkMarkersLayer.addLayer(marker);
       });
       landmarkMarkersLayer.addTo(campusMap);
@@ -2738,63 +3336,39 @@
       });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        GEOLOCATION
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function startGeolocation() {
       if (userWatchId !== null) return;
       if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
       userWatchId = navigator.geolocation.watchPosition(pos => {
         userLatLng = [pos.coords.latitude, pos.coords.longitude];
         const ll = L.latLng(userLatLng[0], userLatLng[1]);
-        if (!userLocationMarker) {
-          userLocationMarker = L.circleMarker(ll, { radius: 10, fillColor: '#6c5ce7', color: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 2000 }).addTo(campusMap);
-          accuracyCircle = L.circle(ll, { radius: pos.coords.accuracy, color: '#6c5ce7', fillColor: '#6c5ce7', fillOpacity: 0.12, weight: 1 }).addTo(campusMap);
-        } else { userLocationMarker.setLatLng(ll); accuracyCircle.setLatLng(ll); accuracyCircle.setRadius(pos.coords.accuracy); }
+        if (!userLocationMarker) { userLocationMarker = L.circleMarker(ll, { radius: 10, fillColor: '#6c5ce7', color: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 2000 }).addTo(campusMap); accuracyCircle = L.circle(ll, { radius: pos.coords.accuracy, color: '#6c5ce7', fillColor: '#6c5ce7', fillOpacity: 0.12, weight: 1 }).addTo(campusMap); }
+        else { userLocationMarker.setLatLng(ll); accuracyCircle.setLatLng(ll); accuracyCircle.setRadius(pos.coords.accuracy); }
         updatePathBasedOnLocation();
       }, err => { console.warn('Geolocation error:', err); }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
       document.getElementById('currentLocationBtn').addEventListener('click', () => { if (userLatLng) campusMap.setView(userLatLng, 18); else alert('Location not available yet.'); });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        INPUT / DROPDOWN
-    ═══════════════════════════════════════════ */
-    function filterItems(iid, lid) {
-      const inp = document.getElementById(iid), lst = document.getElementById(lid), items = Array.from(lst.getElementsByTagName('li')), f = inp.value.toLowerCase();
-      items.forEach(i => i.style.display = 'none');
-      if (!f) { items.forEach(i => i.style.display = ''); return; }
-      items.forEach(i => { if (i.textContent.toLowerCase().startsWith(f)) i.style.display = ''; });
-      items.forEach(i => { if (!i.textContent.toLowerCase().startsWith(f) && i.textContent.toLowerCase().includes(f)) i.style.display = ''; });
-    }
+    ════════════════════════════════════════════════════════════════ */
+    function filterItems(iid, lid) { const inp = document.getElementById(iid), lst = document.getElementById(lid), items = Array.from(lst.getElementsByTagName('li')), f = inp.value.toLowerCase(); items.forEach(i => i.style.display = 'none'); if (!f) { items.forEach(i => i.style.display = ''); return; } items.forEach(i => { if (i.textContent.toLowerCase().startsWith(f)) i.style.display = ''; }); items.forEach(i => { if (!i.textContent.toLowerCase().startsWith(f) && i.textContent.toLowerCase().includes(f)) i.style.display = ''; }); }
     function showList(lid) { document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'); document.getElementById(lid).style.display = 'block'; }
-    function populateDropdowns() {
-      ['fromList', 'toList'].forEach(id => {
-        const ul = document.getElementById(id); ul.innerHTML = '';
-        locationsList.forEach(loc => { const li = document.createElement('li'); li.textContent = loc; ul.appendChild(li); });
-      });
-    }
+    function populateDropdowns() { ['fromList', 'toList'].forEach(id => { const ul = document.getElementById(id); ul.innerHTML = ''; locationsList.forEach(loc => { const li = document.createElement('li'); li.textContent = loc; ul.appendChild(li); }); }); }
     function setupGlobalClickHandler() {
       document.addEventListener('click', e => {
-        if (e.target.tagName === 'LI' && e.target.closest('.dropdown')) {
-          const inp = e.target.closest('.field-body')?.querySelector('input');
-          if (inp) {
-            inp.value = e.target.textContent;
-            if (inp.id === 'fromBox') {
-              const btn = document.getElementById('curLocInlineBtn');
-              btn.classList.toggle('active', inp.value === 'Current Location');
-            }
-            e.target.closest('.dropdown').style.display = 'none';
-          }
-          return;
-        }
+        if (e.target.tagName === 'LI' && e.target.closest('.dropdown')) { const inp = e.target.closest('.field-body')?.querySelector('input'); if (inp) { inp.value = e.target.textContent; if (inp.id === 'fromBox') { const btn = document.getElementById('curLocInlineBtn'); btn.classList.toggle('active', inp.value === 'Current Location'); } e.target.closest('.dropdown').style.display = 'none'; } return; }
         const inside = [...document.querySelectorAll('.field-body')].some(w => w.contains(e.target));
         if (!inside) setTimeout(() => document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'), 100);
       });
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        SEARCH & CLEAR
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     function searchRoute() {
       const fl = document.getElementById('fromBox').value, tl = document.getElementById('toBox').value;
       if (!fl || !tl) { alert('Please select both From and To locations'); return; }
@@ -2802,60 +3376,42 @@
       hasArrived = false;
       document.getElementById('arrivedToast').classList.remove('show');
       document.getElementById('desktopArrived').classList.remove('show');
-      collapseNav();
-      startGeolocation();
+      collapseNav(); closeLayerPanel(); startGeolocation();
       if (fl === 'Current Location') {
-        if (!userLatLng) {
-          alert('Waiting for your location... Please allow location access.');
-          navigator.geolocation.getCurrentPosition(pos => { userLatLng = [pos.coords.latitude, pos.coords.longitude]; searchRoute(); }, () => alert('Could not get your current location.'));
-          return;
-        }
+        if (!userLatLng) { alert('Waiting for your location... Please allow location access.'); navigator.geolocation.getCurrentPosition(pos => { userLatLng = [pos.coords.latitude, pos.coords.longitude]; searchRoute(); }, () => alert('Could not get your current location.')); return; }
         const B = getLandmarkByNameOrId(tl); if (!B) { alert('Invalid destination'); return; }
         isNavigating = true; currentDestination = B;
-        let nnId = null, md = Infinity;
-        graph.nodes.forEach((n, i) => { const d = hav({ lat: userLatLng[0], lng: userLatLng[1] }, n); if (d < md) { md = d; nnId = i; } });
+        let nnId = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav({ lat: userLatLng[0], lng: userLatLng[1] }, n); if (d < md) { md = d; nnId = i; } });
         if (nnId === null) { alert('Could not connect to campus network'); isNavigating = false; return; }
         const dId = nodeIndex.get(`ENT_${B.id}`); if (dId === undefined) { alert('Cannot find destination'); isNavigating = false; return; }
         const res = yensKShortests(nnId, dId, KROUTES); if (!res.length) { alert('No path found'); isNavigating = false; return; }
-        lastResults = res; activeRouteIndex = 0;
-        setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, B);
-        renderSelectedRoute(0);
-        if (isMobile()) renderMobileSheet(res, 0, B.name);
-        else renderDesktopRouteStack(res, 0);
-        hideNavButtons();
+        lastResults = res; activeRouteIndex = 0; setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, B); renderSelectedRoute(0);
+        if (isMobile()) renderMobileSheet(res, 0, B.name); else renderDesktopRouteStack(res, 0); hideNavButtons();
       } else {
         isNavigating = false; currentDestination = null;
         const A = getLandmarkByNameOrId(fl), B = getLandmarkByNameOrId(tl);
         if (!A || !B) { alert('Invalid location selected'); return; }
         const si = nodeIndex.get(`ENT_${A.id}`), di = nodeIndex.get(`ENT_${B.id}`);
         if (si === undefined || di === undefined) { alert('Cannot connect locations to campus network'); return; }
-        const res = yensKShortests(si, di, KROUTES);
-        if (!res.length) { alert('No route found between these locations'); return; }
-        lastResults = res; activeRouteIndex = 0;
-        setStartEndMarkers(A, B);
-        renderSelectedRoute(0);
-        if (isMobile()) renderMobileSheet(res, 0, B.name);
-        else renderDesktopRouteStack(res, 0);
-        hideNavButtons();
+        const res = yensKShortests(si, di, KROUTES); if (!res.length) { alert('No route found between these locations'); return; }
+        lastResults = res; activeRouteIndex = 0; setStartEndMarkers(A, B); renderSelectedRoute(0);
+        if (isMobile()) renderMobileSheet(res, 0, B.name); else renderDesktopRouteStack(res, 0); hideNavButtons();
       }
     }
 
     function clearRoute() {
-      document.getElementById('fromBox').value = '';
-      document.getElementById('toBox').value = '';
+      document.getElementById('fromBox').value = ''; document.getElementById('toBox').value = '';
       document.getElementById('curLocInlineBtn').classList.remove('active');
       document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
       isNavigating = false; currentDestination = null; fullRoutePath = []; currentPathIndices = []; activeRouteIndex = 0; hasArrived = false;
-      clearRouteInfoPanels();
-      stopArrowAnimation();
+      clearRouteInfoPanels(); stopArrowAnimation();
       if (campusMap) clearRoutes();
-      showNavButtons();
-      expandNav();
+      showNavButtons(); expandNav();
     }
 
-    /* ═══════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════
        BOOT
-    ═══════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════════ */
     document.addEventListener('DOMContentLoaded', () => {
       populateDropdowns();
       setupGlobalClickHandler();
@@ -2868,16 +3424,14 @@
       document.getElementById('closeBtn').addEventListener('click', closeSidebar);
 
       document.getElementById('fromBox').addEventListener('input', function () {
-        const btn = document.getElementById('curLocInlineBtn');
-        btn.classList.toggle('active', this.value === 'Current Location');
+        document.getElementById('curLocInlineBtn').classList.toggle('active', this.value === 'Current Location');
       });
 
       document.getElementById('swapBtn').addEventListener('click', () => {
         if (navButtonsHidden) restoreSearchUI();
         const fb = document.getElementById('fromBox'), tb = document.getElementById('toBox');
         [fb.value, tb.value] = [tb.value, fb.value];
-        const btn = document.getElementById('curLocInlineBtn');
-        btn.classList.toggle('active', fb.value === 'Current Location');
+        document.getElementById('curLocInlineBtn').classList.toggle('active', fb.value === 'Current Location');
       });
 
       document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);

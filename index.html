@@ -6,46 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Your Way – PSGCAS</title>
 
-  <!-- ── Leaflet CSS (MUST come before any map JS) ── -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-
-  <!-- ── Font Awesome ── -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- ── Google Fonts ── -->
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
-
-  <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║  SCRIPT LOAD ORDER — CRITICAL                                   ║
-    ║                                                                  ║
-    ║  1. Leaflet CSS  (head)                                         ║
-    ║  2. Leaflet JS   (end of body, or here with defer)              ║
-    ║  3. OSMBuildings (end of body, AFTER Leaflet)                   ║
-    ║                                                                  ║
-    ║  OSMBuildings-Leaflet.js calls `L.Class.extend()` at parse      ║
-    ║  time. If Leaflet isn't loaded yet, you get:                    ║
-    ║    "Uncaught ReferenceError: L is not defined"                  ║
-    ║                                                                  ║
-    ║  FIX: Both scripts are moved to the END of <body>.              ║
-    ║  The OSMBuildings script tag appears AFTER the Leaflet tag.     ║
-    ║                                                                  ║
-    ║  CDN CHANGE: @master branch is unstable and can break at any    ║
-    ║  commit. We use the pinned v0.2.2b release tag instead:         ║
-    ║    https://cdn.jsdelivr.net/gh/kekscom/osmbuildings@0.2.2b/    ║
-    ║       dist/OSMBuildings-Leaflet.js                              ║
-    ║                                                                  ║
-    ║  file:// PROTOCOL: OSM tile requests are blocked by the         ║
-    ║  browser's mixed-content / CORS policy when the page is         ║
-    ║  served from file://. Serve from a local HTTP server instead:   ║
-    ║    npx serve .          (Node.js)                               ║
-    ║    python -m http.server 8080  (Python 3)                       ║
-    ║    php -S localhost:8080       (PHP)                            ║
-    ╚══════════════════════════════════════════════════════════════════╝
-  -->
 
   <style>
     *,
@@ -437,6 +403,15 @@
       box-shadow: 0 8px 28px rgba(108, 92, 231, 0.55);
     }
 
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
     .btn-secondary {
       flex: 1;
       height: 46px;
@@ -537,6 +512,12 @@
       color: #1a1a1a;
     }
 
+    .pill-badge.live {
+      background: var(--green);
+      color: #fff;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+
     .pill-stats {
       display: flex;
       gap: 16px;
@@ -566,6 +547,30 @@
       width: 1px;
       height: 24px;
       background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* ── Live nav indicator (desktop pill) ── */
+    .live-nav-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 4px 8px;
+      background: rgba(0, 184, 148, 0.12);
+      border: 1px solid rgba(0, 184, 148, 0.3);
+      border-radius: 8px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.06em;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: livePulse 1.5s ease-in-out infinite;
     }
 
     #desktopArrived {
@@ -600,6 +605,249 @@
       font-size: 0.72rem;
       color: var(--muted);
       margin-top: 3px;
+    }
+
+    /* ══ CAMPUS OUT-OF-BOUNDS MODAL ══ */
+    #campusModal {
+      position: fixed;
+      inset: 0;
+      z-index: 99000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    #campusModal.open {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .campus-modal-box {
+      background: linear-gradient(160deg, #15173d 0%, #0e1030 100%);
+      border: 1px solid rgba(225, 112, 85, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(225, 112, 85, 0.15);
+      max-width: 360px;
+      width: calc(100% - 40px);
+      padding: 32px 28px;
+      text-align: center;
+      animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .campus-modal-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .campus-modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .campus-modal-msg {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+
+    .campus-modal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--purple) 0%, #4834d4 100%);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+      transition: all 0.25s;
+    }
+
+    .campus-modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(108, 92, 231, 0.55);
+    }
+
+    /* ══ OFFLINE / NETWORK STATUS ══ */
+    #offlineOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 8, 22, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 20px;
+    }
+
+    #offlineOverlay.open {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .offline-box {
+      background: linear-gradient(160deg, #15173d 0%, #0e1030 100%);
+      border: 1px solid rgba(225, 112, 85, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(225, 112, 85, 0.18);
+      max-width: 380px;
+      width: 100%;
+      padding: 36px 30px;
+      text-align: center;
+      animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .offline-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(225, 112, 85, 0.15);
+      border: 1.5px solid rgba(225, 112, 85, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      position: relative;
+    }
+
+    .offline-icon-wrap i {
+      font-size: 1.7rem;
+      color: var(--red);
+    }
+
+    .offline-icon-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(225, 112, 85, 0.3);
+      animation: offlinePulseRing 2s ease-out infinite;
+    }
+
+    .offline-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .offline-msg {
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .offline-status-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      background: rgba(225, 112, 85, 0.12);
+      border: 1px solid rgba(225, 112, 85, 0.3);
+      border-radius: 20px;
+      font-size: 0.70rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #ff9478;
+    }
+
+    .offline-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    /* Small toast shown when connection is restored */
+    #onlineToast {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-14px);
+      z-index: 200100;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: linear-gradient(135deg, #065f46 0%, #059669 100%);
+      border: 1px solid rgba(110, 231, 183, 0.45);
+      border-radius: 20px;
+      padding: 11px 20px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      white-space: nowrap;
+    }
+
+    #onlineToast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #onlineToast i {
+      color: #6ee7b7;
+      font-size: 0.95rem;
+    }
+
+    #onlineToast span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.80rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    @keyframes offlinePulseRing {
+      0% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(1.35);
+        opacity: 0;
+      }
+    }
+
+    @media(max-width:768px) {
+      .offline-box {
+        padding: 28px 22px;
+        border-radius: 20px;
+      }
+
+      .offline-title {
+        font-size: 1.02rem;
+      }
+
+      .offline-msg {
+        font-size: 0.82rem;
+      }
+
+      #onlineToast {
+        top: 14px;
+        padding: 10px 16px;
+      }
+
+      #onlineToast span {
+        font-size: 0.74rem;
+      }
     }
 
     /* ══ MAP AREA ══ */
@@ -749,6 +997,13 @@
       filter: brightness(1.15);
     }
 
+    .map-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+      transform: none !important;
+    }
+
     #currentLocationBtn {
       background: var(--purple);
     }
@@ -801,7 +1056,7 @@
       transition-delay: 0.20s;
     }
 
-    /* ══ LAYER SWITCHER PANEL ══ */
+    /* ══ LAYER SWITCHER ══ */
     #layerPanel {
       position: absolute;
       right: 66px;
@@ -890,7 +1145,7 @@
       cursor: pointer;
       border: 2px solid transparent;
       transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-      aspect-ratio: 1.55 / 1;
+      aspect-ratio: 1.55/1;
       background: #1b1d45;
       display: flex;
       flex-direction: column;
@@ -914,9 +1169,7 @@
     }
 
     .layer-thumb-osm {
-      background: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(160deg, #e8f4f0 0%, #d4e9d8 30%, #c8e0c4 50%, #b8d4b0 70%, #d4dde8 100%);
+      background: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(160deg, #e8f4f0 0%, #d4e9d8 30%, #c8e0c4 50%, #b8d4b0 70%, #d4dde8 100%);
       background-size: 12px 12px, 12px 12px, 100% 100%;
     }
 
@@ -929,10 +1182,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.06) 2px, transparent 2px),
-        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.04) 3px, transparent 3px),
-        radial-gradient(circle at 45% 75%, rgba(200, 180, 100, 0.15) 8px, transparent 8px),
-        radial-gradient(circle at 80% 20%, rgba(150, 200, 255, 0.1) 12px, transparent 12px);
+      background: radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.06) 2px, transparent 2px), radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.04) 3px, transparent 3px), radial-gradient(circle at 45% 75%, rgba(200, 180, 100, 0.15) 8px, transparent 8px), radial-gradient(circle at 80% 20%, rgba(150, 200, 255, 0.1) 12px, transparent 12px);
     }
 
     .layer-thumb-light {
@@ -944,8 +1194,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(rgba(140, 140, 120, 0.16) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(140, 140, 120, 0.16) 1px, transparent 1px);
+      background: linear-gradient(rgba(140, 140, 120, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(140, 140, 120, 0.16) 1px, transparent 1px);
       background-size: 16px 16px;
     }
 
@@ -959,8 +1208,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(rgba(100, 180, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(100, 180, 255, 0.08) 1px, transparent 1px);
+      background: linear-gradient(rgba(100, 180, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 180, 255, 0.08) 1px, transparent 1px);
       background-size: 14px 14px;
     }
 
@@ -1099,7 +1347,6 @@
       font-weight: 400;
     }
 
-    /* ── 3D Error Toast ── */
     #toast3DError {
       position: absolute;
       top: 14px;
@@ -1127,6 +1374,56 @@
     #toast3DError.visible {
       display: flex;
       animation: fadeDown 0.4s ease;
+    }
+
+    /* ══ LIVE NAV STATUS BAR (map overlay) ══ */
+    #liveNavBar {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1020;
+      background: rgba(0, 184, 148, 0.92);
+      border: 1px solid rgba(110, 231, 183, 0.5);
+      border-radius: 22px;
+      padding: 7px 18px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0, 184, 148, 0.4);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      pointer-events: none;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    #liveNavBar.visible {
+      display: flex;
+      animation: fadeDown 0.4s ease;
+    }
+
+    .live-nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      animation: livePulse 1.5s ease-in-out infinite;
+    }
+
+    .live-nav-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.70rem;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .live-nav-stats {
+      font-size: 0.70rem;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 600;
     }
 
     /* ══ BOTTOM SHEET ══ */
@@ -1264,6 +1561,11 @@
       font-size: 10px;
     }
 
+    /* Hide expand button during live nav */
+    .live-nav-mode .expand-hint {
+      display: none;
+    }
+
     .sheet-expanded-panel {
       display: none;
       flex-direction: column;
@@ -1383,6 +1685,11 @@
       font-weight: 800;
     }
 
+    .rc-active-badge.live {
+      background: var(--green);
+      color: #fff;
+    }
+
     .rc-stats {
       display: flex;
       align-items: center;
@@ -1443,6 +1750,35 @@
       background: rgba(255, 255, 255, 0.10);
       flex-shrink: 0;
       margin: 0 6px;
+    }
+
+    /* ── Live remaining label on mobile sheet ── */
+    .live-remaining-row {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 20px 10px;
+      flex-shrink: 0;
+    }
+
+    .live-remaining-row.show {
+      display: flex;
+    }
+
+    .live-remaining-pip {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: livePulse 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    .live-remaining-text {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.06em;
     }
 
     #arrivedToast {
@@ -2019,6 +2355,10 @@
       #arrivedToast {
         display: none !important;
       }
+
+      #liveNavBar {
+        top: 66px;
+      }
     }
 
     /* ══ ANIMATIONS ══ */
@@ -2103,6 +2443,32 @@
         opacity: 0.55;
       }
     }
+
+    @keyframes livePulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(0.85);
+      }
+    }
+
+    @keyframes modalPop {
+      from {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 
@@ -2168,8 +2534,6 @@
 
   <!-- ═══ MAP ═══ -->
   <div class="map-section" id="mapSection">
-
-    <!-- Fullscreen header -->
     <div id="fsHeader">
       <div class="fs-title">
         <span class="fs-title-badge">PSGCAS</span>
@@ -2180,49 +2544,42 @@
 
     <div id="mapContainer"></div>
 
-    <!-- 3D Buildings status badge -->
+    <!-- 3D badge -->
     <div id="badge3D">
       <span class="badge3d-dot"></span>
       <span class="badge3d-label">3D Buildings</span>
       <span class="badge3d-sub">&nbsp;· OSM Data</span>
     </div>
-
     <!-- 3D error toast -->
     <div id="toast3DError">
       <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>
       3D Buildings unavailable. Showing standard map.
     </div>
 
-    <!-- Map control cluster -->
-    <div id="mapCtrlGroup">
-      <button id="ctrlToggleBtn" title="Toggle controls">
-        <i class="fas fa-chevron-up"></i>
-      </button>
-      <button class="map-btn" id="currentLocationBtn" title="My Location">
-        <i class="fas fa-location-crosshairs"></i>
-      </button>
-      <button class="map-btn" id="fullscreenBtn" title="Fullscreen Map">
-        <i class="fas fa-expand"></i>
-      </button>
-      <button class="map-btn" id="layerBtn" title="Switch Map Layer">
-        <i class="fas fa-layer-group"></i>
-      </button>
-      <button class="map-btn" id="landmarkToggleBtn" title="Toggle Landmarks">
-        <i class="fas fa-map-pin"></i>
-      </button>
+    <!-- Live navigation status bar -->
+    <div id="liveNavBar">
+      <span class="live-nav-dot"></span>
+      <span class="live-nav-label">Live Navigation</span>
+      <span class="live-nav-stats" id="liveNavStats"></span>
     </div>
 
-    <!-- ═══ LAYER SWITCHER PANEL ═══ -->
+    <!-- Map control cluster -->
+    <div id="mapCtrlGroup">
+      <button id="ctrlToggleBtn" title="Toggle controls"><i class="fas fa-chevron-up"></i></button>
+      <button class="map-btn" id="currentLocationBtn" title="My Location"><i
+          class="fas fa-location-crosshairs"></i></button>
+      <button class="map-btn" id="fullscreenBtn" title="Fullscreen Map"><i class="fas fa-expand"></i></button>
+      <button class="map-btn" id="layerBtn" title="Switch Map Layer"><i class="fas fa-layer-group"></i></button>
+      <button class="map-btn" id="landmarkToggleBtn" title="Toggle Landmarks"><i class="fas fa-map-pin"></i></button>
+    </div>
+
+    <!-- Layer panel -->
     <div id="layerPanel">
       <div class="layer-panel-header">
         <span class="layer-panel-title">Map Style</span>
-        <button class="layer-panel-close" id="layerPanelClose" title="Close">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="layer-panel-close" id="layerPanelClose" title="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="layer-options">
-
-        <!-- Standard (OpenStreetMap) -->
         <div class="layer-option selected" data-layer="osm" title="OpenStreetMap Standard">
           <div class="layer-thumb layer-thumb-osm">
             <div class="layer-thumb-road">
@@ -2238,8 +2595,6 @@
           </div>
           <div class="layer-label"><span class="layer-name">Standard</span><span class="layer-check"></span></div>
         </div>
-
-        <!-- Satellite -->
         <div class="layer-option" data-layer="satellite" title="ESRI World Imagery">
           <div class="layer-thumb layer-thumb-satellite">
             <div class="layer-thumb-road">
@@ -2253,8 +2608,6 @@
           </div>
           <div class="layer-label"><span class="layer-name">Satellite</span><span class="layer-check"></span></div>
         </div>
-
-        <!-- Light (CartoDB) -->
         <div class="layer-option" data-layer="light" title="CartoDB Light">
           <div class="layer-thumb layer-thumb-light">
             <div class="layer-thumb-road">
@@ -2271,8 +2624,6 @@
           </div>
           <div class="layer-label"><span class="layer-name">Light</span><span class="layer-check"></span></div>
         </div>
-
-        <!-- 3D Buildings -->
         <div class="layer-option" data-layer="3d" title="OSM 3D Buildings">
           <div class="layer-thumb layer-thumb-3d">
             <svg class="layer-thumb-3d-buildings" viewBox="0 0 100 65" preserveAspectRatio="none"
@@ -2295,13 +2646,16 @@
           </div>
           <div class="layer-label"><span class="layer-name">3D Buildings</span><span class="layer-check"></span></div>
         </div>
-
       </div>
     </div>
 
     <!-- ═══ BOTTOM SHEET ═══ -->
     <div id="bottomSheet">
       <div class="sheet-handle" id="sheetHandle"><span class="handle-pill"></span></div>
+      <div class="live-remaining-row" id="liveRemainingRow">
+        <span class="live-remaining-pip"></span>
+        <span class="live-remaining-text" id="liveRemainingText">Live navigation active</span>
+      </div>
       <div class="sheet-compact" id="sheetCompact">
         <div class="compact-dest">
           <span class="compact-dest-label">Destination</span>
@@ -2337,6 +2691,38 @@
     </div>
   </div>
 
+  <!-- ═══ OUT-OF-CAMPUS MODAL ═══ -->
+  <div id="campusModal">
+    <div class="campus-modal-box">
+      <span class="campus-modal-icon">📍</span>
+      <div class="campus-modal-title">Outside Campus Area</div>
+      <div class="campus-modal-msg">
+        Your live location is not within the campus area.<br>
+        Please choose an alternative starting location from the list.
+      </div>
+      <button class="campus-modal-btn" onclick="closeCampusModal()">
+        <i class="fas fa-map-marker-alt"></i> Choose Starting Point
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ OFFLINE / NO INTERNET OVERLAY ═══ -->
+  <div id="offlineOverlay" role="alert" aria-live="assertive">
+    <div class="offline-box">
+      <div class="offline-icon-wrap"><i class="fas fa-wifi-slash" id="offlineIcon"></i></div>
+      <div class="offline-title">No Internet Connection</div>
+      <div class="offline-msg">Please check your network and try again. Navigation, route search, and live
+        tracking are paused until your connection is restored.</div>
+      <div class="offline-status-row"><span class="offline-status-dot"></span> Waiting for connection</div>
+    </div>
+  </div>
+
+  <!-- ═══ CONNECTION RESTORED TOAST ═══ -->
+  <div id="onlineToast">
+    <i class="fas fa-check-circle"></i>
+    <span>Internet Connection Restored</span>
+  </div>
+
   <!-- ═══ LOCATION SIDE MENU ═══ -->
   <div id="overlay" class="overlay"></div>
   <aside id="sideMenu" class="sidebar">
@@ -2359,15 +2745,13 @@
     </div>
     <div class="sidebar-content">
       <details class="accordion-item">
-        <summary>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>Ground Floor
-        </summary>
+          </svg>Ground Floor</summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Technology (SF)</p>
@@ -2388,15 +2772,13 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>First Floor
-        </summary>
+          </svg>First Floor</summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Science (SF)</p>
@@ -2417,15 +2799,13 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
-          </svg>Second Floor
-        </summary>
+          </svg>Second Floor</summary>
         <ul class="department-list">
           <li>
             <p class="depat-name">B.Sc Computer Application (SF)</p>
@@ -2446,14 +2826,12 @@
         </ul>
       </details>
       <details class="accordion-item">
-        <summary>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <circle cx="8.5" cy="8.5" r="1.5" />
             <polyline points="21 15 16 10 5 21" />
-          </svg>Images
-        </summary>
+          </svg>Images</summary>
         <ul class="department-list" style="padding:12px;">
           <li style="padding:0;background:transparent;border-left:none;">
             <div class="sidebar-carousel" id="sidebarCarousel">
@@ -2489,49 +2867,170 @@
     <div class="lb-counter" id="lbCounter">1 / 4</div>
   </div>
 
-  <!--
-    ╔══════════════════════════════════════════════════════════╗
-    ║  SCRIPT LOAD ORDER — DO NOT REORDER THESE THREE TAGS   ║
-    ║                                                          ║
-    ║  1. Leaflet JS  — defines the global `L` object         ║
-    ║  2. OSMBuildings-Leaflet.js — extends L.Class, so       ║
-    ║     Leaflet MUST be parsed first                         ║
-    ║  3. App <script> block — uses both L and OSMBuildings    ║
-    ║                                                          ║
-    ║  CDN pinned to tag v0.2.2b for stability.               ║
-    ║  @master can break at any upstream commit.              ║
-    ╚══════════════════════════════════════════════════════════╝
-  -->
-
-  <!-- STEP 1 — Leaflet JS -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <!--
-    STEP 2 — OSMBuildings for Leaflet (pinned release)
-    ─────────────────────────────────────────────────
-    WHY THIS URL?
-      • @master head can change without notice and has broken `L is not
-        defined` errors in production multiple times.
-      • v0.2.2b is the last stable classic (2.5D canvas) release that
-        is confirmed compatible with Leaflet 1.x.
-      • The file is served by jsDelivr with global CDN + SRI-ready.
-
-    WHAT THIS SCRIPT DOES AT PARSE TIME:
-      It calls  L.Class.extend({ … })  to register the OSMBuildings
-      layer class. That call requires `L` to already exist in scope —
-      which is why this tag must come AFTER the Leaflet script tag.
-
-    FALLBACK STRATEGY (implemented in enable3DLayer()):
-      If the script fails to load (network, CSP, etc.) the global
-      `OSMBuildings` will be undefined. The app detects this, shows
-      the error toast, and falls back to the OSM Standard raster layer.
-  -->
+  <!-- OSMBuildings (pinned stable release, AFTER Leaflet) -->
   <script src="https://cdn.jsdelivr.net/gh/kekscom/osmbuildings@0.2.2b/dist/OSMBuildings-Leaflet.js"
-    onerror="window._osmBuildingsLoadFailed = true;"></script>
+    onerror="window._osmBuildingsLoadFailed=true;"></script>
 
-  <!-- STEP 3 — Application logic -->
   <script>
+    /* ═══════════════════════════════════════════════════════
+       NETWORK / CONNECTIVITY MONITOR
+       Detects loss/restoration of internet connectivity using
+       the browser's online/offline events, backed by a periodic
+       lightweight reachability ping (since navigator.onLine only
+       reflects network-adapter state, not true internet access).
+       While offline: navigation, routing, live tracking, layer
+       loads, and search are paused. Existing map/route visuals
+       stay on screen. On restore: overlay hides, a brief toast
+       confirms reconnection, and normal operation resumes.
+    ═══════════════════════════════════════════════════════ */
+    let isOffline = false;
+    let connectivityCheckTimer = null;
+    let onlineToastTimer = null;
+    const CONNECTIVITY_CHECK_INTERVAL = 15000; /* re-verify every 15s while online, as a safety net */
+    const CONNECTIVITY_PING_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+
+    function isAppOffline() { return isOffline; }
+
+    function showOfflineOverlay() {
+      const ov = document.getElementById('offlineOverlay');
+      if (!ov.classList.contains('open')) ov.classList.add('open');
+    }
+    function hideOfflineOverlay() {
+      document.getElementById('offlineOverlay').classList.remove('open');
+    }
+    function showOnlineToast() {
+      const t = document.getElementById('onlineToast');
+      t.classList.add('show');
+      clearTimeout(onlineToastTimer);
+      onlineToastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    /* Disable/enable all interactive controls that require network access.
+       Existing map tiles/routes already rendered remain visible untouched. */
+    function setNetworkDependentControlsDisabled(disabled) {
+      const ids = ['but1', 'but2', 'currentLocationBtn', 'fullscreenBtn', 'layerBtn', 'landmarkToggleBtn', 'ctrlToggleBtn'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      });
+      const fromBox = document.getElementById('fromBox');
+      const toBox = document.getElementById('toBox');
+      const curLocBtn = document.getElementById('curLocInlineBtn');
+      if (fromBox) fromBox.disabled = disabled;
+      if (toBox) toBox.disabled = disabled;
+      if (curLocBtn) curLocBtn.style.pointerEvents = disabled ? 'none' : '';
+      if (disabled) {
+        document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
+        closeLayerPanel();
+      }
+    }
+
+    function enterOfflineState() {
+      if (isOffline) return;
+      isOffline = true;
+      showOfflineOverlay();
+      setNetworkDependentControlsDisabled(true);
+      /* Pause live GPS-driven recalculation/tracking UI, but keep watchPosition
+         registered so we resume instantly once back online; just gate the handler. */
+    }
+
+    function exitOfflineState() {
+      if (!isOffline) return;
+      isOffline = false;
+      hideOfflineOverlay();
+      setNetworkDependentControlsDisabled(false);
+      showOnlineToast();
+    }
+
+    /* navigator.onLine only tells us the OS/browser thinks there is a network
+       link — it does not guarantee actual internet reachability. We confirm
+       with a tiny no-cors fetch before trusting an "online" signal. */
+    function verifyRealConnectivity(onResult) {
+      if (!navigator.onLine) { onResult(false); return; }
+      const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 5000) : null;
+      fetch(CONNECTIVITY_PING_URL + '?_=' + Date.now(), {
+        method: 'HEAD',
+        mode: 'no-cors',
+        cache: 'no-store',
+        signal: controller ? controller.signal : undefined
+      }).then(() => {
+        if (timeoutId) clearTimeout(timeoutId);
+        onResult(true);
+      }).catch(() => {
+        if (timeoutId) clearTimeout(timeoutId);
+        onResult(false);
+      });
+    }
+
+    function handleConnectivityChange() {
+      verifyRealConnectivity(reachable => {
+        if (reachable) exitOfflineState();
+        else enterOfflineState();
+      });
+    }
+
+    function startConnectivityWatcher() {
+      window.addEventListener('online', handleConnectivityChange);
+      window.addEventListener('offline', () => enterOfflineState());
+      /* Initial check on load */
+      handleConnectivityChange();
+      /* Periodic safety-net re-check (covers flaky Wi-Fi/no-signal cases
+         where the browser never fires online/offline events) */
+      connectivityCheckTimer = setInterval(handleConnectivityChange, CONNECTIVITY_CHECK_INTERVAL);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       CAMPUS BOUNDARY
+       Polygon vertices (lat/lng) tracing the campus perimeter.
+       Point-in-polygon test uses ray-casting algorithm.
+       We also add a 30 m tolerance buffer via a bounding-box
+       pre-check for performance.
+    ═══════════════════════════════════════════════════════ */
+    const CAMPUS_POLYGON = [
+      [11.034820, 77.033845], [11.034749, 77.034258], [11.034391, 77.035535],
+      [11.034009, 77.036093], [11.033834, 77.036351], [11.033289, 77.036422],
+      [11.032278, 77.036498], [11.031834, 77.036534], [11.030725, 77.035295],
+      [11.030778, 77.033976], [11.031281, 77.033974], [11.031483, 77.033107],
+      [11.032002, 77.032709], [11.032397, 77.032700], [11.032534, 77.032396],
+      [11.033037, 77.032115], [11.033232, 77.032396], [11.033400, 77.033864],
+      [11.034820, 77.033845]
+    ];
+    /* Loose bounding box for fast pre-check */
+    const CAMPUS_BBOX = {
+      minLat: 11.030600, maxLat: 11.035000,
+      minLng: 77.031900, maxLng: 77.036700
+    };
+    /* Extra tolerance in degrees (~36 m) for boundary edge cases */
+    const CAMPUS_TOLERANCE_DEG = 0.00032;
+
+    function pointInPolygon(lat, lng, poly) {
+      let inside = false;
+      const n = poly.length;
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = poly[i][1], yi = poly[i][0];
+        const xj = poly[j][1], yj = poly[j][0];
+        const intersect = ((yi > lat) !== (yj > lat)) &&
+          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function isWithinCampus(lat, lng) {
+      /* Fast bounding-box pre-check with tolerance */
+      if (lat < CAMPUS_BBOX.minLat - CAMPUS_TOLERANCE_DEG ||
+        lat > CAMPUS_BBOX.maxLat + CAMPUS_TOLERANCE_DEG ||
+        lng < CAMPUS_BBOX.minLng - CAMPUS_TOLERANCE_DEG ||
+        lng > CAMPUS_BBOX.maxLng + CAMPUS_TOLERANCE_DEG) {
+        return false;
+      }
+      return pointInPolygon(lat, lng, CAMPUS_POLYGON);
+    }
+
     /* ════════════════════════════════════════════════════════════════
        UTILITIES
     ════════════════════════════════════════════════════════════════ */
@@ -2545,8 +3044,8 @@
     let navButtonsHidden = false;
     function hideNavButtons() { document.getElementById('btnRow').classList.add('nav-hidden'); navButtonsHidden = true; }
     function showNavButtons() { document.getElementById('btnRow').classList.remove('nav-hidden'); navButtonsHidden = false; }
-    function onFromBoxClick() { if (navButtonsHidden) restoreSearchUI(); showList('fromList'); expandNav(); }
-    function onToBoxClick() { if (navButtonsHidden) restoreSearchUI(); showList('toList'); expandNav(); }
+    function onFromBoxClick() { if (isAppOffline()) return; if (navButtonsHidden) restoreSearchUI(); showList('fromList'); expandNav(); }
+    function onToBoxClick() { if (isAppOffline()) return; if (navButtonsHidden) restoreSearchUI(); showList('toList'); expandNav(); }
     function restoreSearchUI() { showNavButtons(); }
 
     /* ════════════════════════════════════════════════════════════════
@@ -2554,6 +3053,7 @@
     ════════════════════════════════════════════════════════════════ */
     function setCurrentLocationInFrom(e) {
       e.stopPropagation();
+      if (isAppOffline()) return;
       const btn = document.getElementById('curLocInlineBtn');
       const fromBox = document.getElementById('fromBox');
       if (fromBox.value === 'Current Location') { fromBox.value = ''; btn.classList.remove('active'); return; }
@@ -2561,6 +3061,22 @@
       btn.classList.add('active');
       document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
       startGeolocation();
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       CAMPUS MODAL
+    ════════════════════════════════════════════════════════════════ */
+    function showCampusModal() {
+      document.getElementById('campusModal').classList.add('open');
+    }
+    function closeCampusModal() {
+      document.getElementById('campusModal').classList.remove('open');
+      /* Reset From box so user picks a manual location */
+      const fromBox = document.getElementById('fromBox');
+      fromBox.value = '';
+      document.getElementById('curLocInlineBtn').classList.remove('active');
+      showNavButtons();
+      expandNav();
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -2579,13 +3095,14 @@
       document.getElementById('fullscreenBtn').title = 'Fullscreen Map';
       setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400);
     }
-    function toggleFullscreen() { isFullscreen ? exitFullscreen() : enterFullscreen(); }
+    function toggleFullscreen() { if (isAppOffline()) return; isFullscreen ? exitFullscreen() : enterFullscreen(); }
 
     /* ════════════════════════════════════════════════════════════════
        CONTROL CLUSTER COLLAPSE
     ════════════════════════════════════════════════════════════════ */
     let ctrlCollapsed = false;
     function toggleCtrlGroup() {
+      if (isAppOffline()) return;
       ctrlCollapsed = !ctrlCollapsed;
       const grp = document.getElementById('mapCtrlGroup');
       const btn = document.getElementById('ctrlToggleBtn');
@@ -2601,42 +3118,15 @@
        LAYER CONFIGURATION
     ════════════════════════════════════════════════════════════════ */
     const tileLayers = {
-      osm: {
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        options: { maxZoom: 20, attribution: '' }
-      },
-      satellite: {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        options: { maxZoom: 20, attribution: '' }
-      },
-      light: {
-        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-        options: { maxZoom: 20, attribution: '', subdomains: 'abcd' }
-      }
+      osm: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', options: { maxZoom: 20, attribution: '' } },
+      satellite: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', options: { maxZoom: 20, attribution: '' } },
+      light: { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', options: { maxZoom: 20, attribution: '', subdomains: 'abcd' } }
     };
+    let layerPanelOpen = false, currentLayerKey = 'osm', currentTileLayer = null;
+    let osmBuildingsInst = null, is3DActive = false, baseLayerBefore3D = 'osm', errorToastTimer = null;
 
-    /* ════════════════════════════════════════════════════════════════
-       LAYER STATE GLOBALS
-    ════════════════════════════════════════════════════════════════ */
-    let layerPanelOpen = false;
-    let currentLayerKey = 'osm';
-    let currentTileLayer = null;
-
-    /*
-      ── OSM BUILDINGS STATE ──
-      osmBuildingsInst  → the active OSMBuildings instance
-      is3DActive        → whether the 3D overlay is currently shown
-      baseLayerBefore3D → raster key active before 3D, restored on exit
-    */
-    let osmBuildingsInst = null;
-    let is3DActive = false;
-    let baseLayerBefore3D = 'osm';
-    let errorToastTimer = null;
-
-    /* ════════════════════════════════════════════════════════════════
-       LAYER PANEL OPEN / CLOSE
-    ════════════════════════════════════════════════════════════════ */
     function openLayerPanel() {
+      if (isAppOffline()) return;
       layerPanelOpen = true;
       document.getElementById('layerPanel').classList.add('open');
       document.getElementById('layerBtn').classList.add('active');
@@ -2647,8 +3137,7 @@
       document.getElementById('layerPanel').classList.remove('open');
       if (!is3DActive) document.getElementById('layerBtn').classList.remove('active');
     }
-    function toggleLayerPanel() { layerPanelOpen ? closeLayerPanel() : openLayerPanel(); }
-
+    function toggleLayerPanel() { if (isAppOffline()) return; layerPanelOpen ? closeLayerPanel() : openLayerPanel(); }
     function positionLayerPanel() {
       const panel = document.getElementById('layerPanel');
       const btn = document.getElementById('layerBtn');
@@ -2661,10 +3150,6 @@
       panel.style.bottom = 'auto';
       panel.style.top = (top - mapRect.top) + 'px';
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       SWITCH RASTER BASE LAYER
-    ════════════════════════════════════════════════════════════════ */
     function switchRasterLayer(key) {
       if (!campusMap || key === currentLayerKey) return;
       if (currentTileLayer) { campusMap.removeLayer(currentTileLayer); currentTileLayer = null; }
@@ -2673,10 +3158,6 @@
       currentTileLayer.bringToBack();
       currentLayerKey = key;
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       3D ERROR TOAST
-    ════════════════════════════════════════════════════════════════ */
     function show3DError(msg) {
       const t = document.getElementById('toast3DError');
       if (msg) t.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>${msg}`;
@@ -2684,227 +3165,91 @@
       clearTimeout(errorToastTimer);
       errorToastTimer = setTimeout(() => t.classList.remove('visible'), 5000);
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       ENABLE 3D BUILDINGS LAYER
-       ─────────────────────────────────────────────────────────────
-       Root causes fixed here vs original code:
-
-       1. SCRIPT ORDER: OSMBuildings script was in <head> before
-          Leaflet, causing "L is not defined". Now both scripts are
-          at end of <body>, OSMBuildings AFTER Leaflet.
-
-       2. CDN STABILITY: Changed from @master (unstable) to pinned
-          @0.2.2b tag for reliable loading.
-
-       3. file:// PROTOCOL: OSM Buildings tile API uses HTTPS. Browsers
-          block mixed content and CORS from file:// origins. Always
-          serve from http://localhost:PORT (npx serve ., python -m
-          http.server, etc.).
-
-       4. CONSTRUCTOR OPTIONS: The classic 0.2.x build's constructor
-          does NOT accept a full options object as second argument in
-          all versions. We set visual options via .set() after init.
-
-       5. TILE URL TEMPLATE: The classic build uses {zoom} not {z},
-          and {x}/{y} directly. We pass the correct template.
-
-       6. ZOOM GUARD: OSMBuildings renders nothing below zoom 15.
-          We pan+zoom to the campus centre on 3D activation so
-          buildings appear immediately instead of a blank canvas.
-    ════════════════════════════════════════════════════════════════ */
     function enable3DLayer() {
       if (!campusMap) return;
-
-      // ── Guard: check if OSMBuildings loaded successfully ────────
+      if (isAppOffline()) { show3DError('No internet connection. Try again once online.'); updateLayerOptionUI('osm'); return; }
       if (typeof OSMBuildings === 'undefined' || window._osmBuildingsLoadFailed) {
-        console.warn('[3D] OSMBuildings library not available');
         show3DError('3D Buildings unavailable. Check network connection.');
-        updateLayerOptionUI('osm');
-        return;
+        updateLayerOptionUI('osm'); return;
       }
-
-      // ── Record current base and switch to OSM Standard ──────────
       baseLayerBefore3D = currentLayerKey;
       if (currentLayerKey !== 'osm') switchRasterLayer('osm');
-
-      // ── Tear down any existing instance ─────────────────────────
       destroyOSMBuildings();
-
       try {
-        /*
-          Create OSMBuildings instance.
-          Classic 0.2.x API: new OSMBuildings(leafletMap)
-          The constructor attaches a <canvas> overlay to the map.
-
-          NOTE: Do NOT pass options as second argument — some builds
-          ignore it and others throw. Use .set() after construction.
-        */
         osmBuildingsInst = new OSMBuildings(campusMap);
-
-        /*
-          Apply visual style via .set().
-          These match the purple/campus theme.
-        */
-        osmBuildingsInst.set({
-          color: 'rgba(108, 92, 231, 0.80)',
-          wallColor: 'rgba(74, 63, 200, 0.75)',
-          roofColor: 'rgba(162, 155, 254, 0.88)',
-          shadows: false
-        });
-
-        /*
-          Load building tile data.
-          Template tokens: {zoom}, {x}, {y}  (classic 0.2.x format)
-          The API requires zoom ≥ 15 to return building data.
-
-          Data source: OSM Buildings public tile API
-          (backed by OpenStreetMap building footprints + height tags)
-        */
-        osmBuildingsInst.load(
-          'https://data.osmbuildings.org/0.2/anonymous/tile/{zoom}/{x}/{y}.json'
-        );
-
+        osmBuildingsInst.set({ color: 'rgba(108,92,231,0.80)', wallColor: 'rgba(74,63,200,0.75)', roofColor: 'rgba(162,155,254,0.88)', shadows: false });
+        osmBuildingsInst.load('https://data.osmbuildings.org/0.2/anonymous/tile/{zoom}/{x}/{y}.json');
         is3DActive = true;
-
-        // ── Ensure zoom ≥ 15 so buildings render immediately ──────
-        if (campusMap.getZoom() < 17) {
-          campusMap.setView([11.033400, 77.033864], 17);
-        }
-
-        // ── Update UI ──────────────────────────────────────────────
+        if (campusMap.getZoom() < 17) campusMap.setView([11.033400, 77.033864], 17);
         document.getElementById('badge3D').classList.add('visible');
         document.getElementById('layerBtn').classList.add('layer-3d-active');
         document.getElementById('layerBtn').classList.remove('active');
-
-        console.info('[3D] OSMBuildings active — tile data loading');
-
       } catch (err) {
-        console.error('[3D] OSMBuildings init failed:', err);
         destroyOSMBuildings();
         show3DError('3D Buildings failed to initialise. Reverting to Standard.');
-        switchRasterLayer('osm');
-        updateLayerOptionUI('osm');
+        switchRasterLayer('osm'); updateLayerOptionUI('osm');
       }
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       DISABLE / DESTROY 3D BUILDINGS LAYER
-       ─────────────────────────────────────────────────────────────
-       The classic OSMBuildings 0.2.x attaches a <canvas> element
-       directly to the Leaflet map container. We try the plugin's
-       own cleanup method first, then fall back to manual canvas
-       removal so no orphaned canvases accumulate.
-    ════════════════════════════════════════════════════════════════ */
     function destroyOSMBuildings() {
       if (!osmBuildingsInst) return;
-
       try {
-        /*
-          Try official cleanup methods in order of preference.
-          Different patch versions of 0.2.x expose different names.
-        */
-        if (typeof osmBuildingsInst.remove === 'function') {
-          osmBuildingsInst.remove();
-        } else if (typeof osmBuildingsInst.destroy === 'function') {
-          osmBuildingsInst.destroy();
-        } else {
-          /*
-            Manual fallback: OSMBuildings inserts a <canvas> whose
-            className contains "osmb" or starts with "OSM". Remove
-            all such canvases from the map container.
-          */
+        if (typeof osmBuildingsInst.remove === 'function') osmBuildingsInst.remove();
+        else if (typeof osmBuildingsInst.destroy === 'function') osmBuildingsInst.destroy();
+        else {
           const container = campusMap.getContainer();
-          // Target both the canvas and its possible wrapper div
-          container.querySelectorAll(
-            'canvas, .osmbuildings, [class*="osmb"]'
-          ).forEach(el => {
-            // Only remove elements that OSMBuildings added
-            if (
-              el.tagName === 'CANVAS' ||
-              (el.className && el.className.toString().toLowerCase().includes('osmb'))
-            ) {
-              el.remove();
-            }
+          container.querySelectorAll('canvas,[class*="osmb"]').forEach(el => {
+            if (el.tagName === 'CANVAS' || (el.className && el.className.toString().toLowerCase().includes('osmb'))) el.remove();
           });
         }
       } catch (e) {
-        console.warn('[3D] OSMBuildings teardown error (non-fatal):', e);
-        // Still attempt manual canvas cleanup as last resort
-        try {
-          campusMap.getContainer()
-            .querySelectorAll('canvas')
-            .forEach(c => c.remove());
-        } catch (_) { /* ignore */ }
+        try { campusMap.getContainer().querySelectorAll('canvas').forEach(c => c.remove()); } catch (_) { }
       }
-
-      osmBuildingsInst = null;
-      is3DActive = false;
-
+      osmBuildingsInst = null; is3DActive = false;
       document.getElementById('badge3D').classList.remove('visible');
       document.getElementById('layerBtn').classList.remove('layer-3d-active');
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       MASTER LAYER SWITCH DISPATCHER
-    ════════════════════════════════════════════════════════════════ */
     function switchLayer(key) {
+      if (isAppOffline()) { closeLayerPanel(); return; }
       if (!campusMap) { closeLayerPanel(); return; }
-
       if (key === '3d') {
         if (is3DActive) { setTimeout(closeLayerPanel, 250); return; }
-        enable3DLayer();
-        updateLayerOptionUI('3d');
-        setTimeout(closeLayerPanel, 250);
-        return;
+        enable3DLayer(); updateLayerOptionUI('3d'); setTimeout(closeLayerPanel, 250); return;
       }
-
-      // Raster layer selected — tear down 3D if active
-      if (is3DActive) {
-        destroyOSMBuildings();
-      }
-
-      switchRasterLayer(key);
-      updateLayerOptionUI(key);
-      setTimeout(closeLayerPanel, 250);
+      if (is3DActive) destroyOSMBuildings();
+      switchRasterLayer(key); updateLayerOptionUI(key); setTimeout(closeLayerPanel, 250);
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       UPDATE LAYER OPTION HIGHLIGHT IN PANEL
-    ════════════════════════════════════════════════════════════════ */
     function updateLayerOptionUI(activeKey) {
-      document.querySelectorAll('.layer-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.layer === activeKey);
-      });
+      document.querySelectorAll('.layer-option').forEach(opt => opt.classList.toggle('selected', opt.dataset.layer === activeKey));
     }
-
-    /* ════════════════════════════════════════════════════════════════
-       INIT LAYER SWITCHER
-    ════════════════════════════════════════════════════════════════ */
     function initLayerSwitcher() {
-      document.getElementById('layerBtn').addEventListener('click', e => {
-        e.stopPropagation(); toggleLayerPanel();
-      });
-      document.getElementById('layerPanelClose').addEventListener('click', e => {
-        e.stopPropagation(); closeLayerPanel();
-      });
-      document.querySelectorAll('.layer-option').forEach(opt => {
-        opt.addEventListener('click', () => switchLayer(opt.dataset.layer));
-      });
+      document.getElementById('layerBtn').addEventListener('click', e => { e.stopPropagation(); toggleLayerPanel(); });
+      document.getElementById('layerPanelClose').addEventListener('click', e => { e.stopPropagation(); closeLayerPanel(); });
+      document.querySelectorAll('.layer-option').forEach(opt => opt.addEventListener('click', () => switchLayer(opt.dataset.layer)));
       document.addEventListener('click', e => {
-        if (layerPanelOpen &&
-          !document.getElementById('layerPanel').contains(e.target) &&
-          !document.getElementById('layerBtn').contains(e.target)) {
-          closeLayerPanel();
-        }
+        if (layerPanelOpen && !document.getElementById('layerPanel').contains(e.target) && !document.getElementById('layerBtn').contains(e.target)) closeLayerPanel();
       });
       window.addEventListener('resize', () => { if (layerPanelOpen) positionLayerPanel(); });
     }
 
     /* ════════════════════════════════════════════════════════════════
+       LIVE NAV STATUS BAR
+    ════════════════════════════════════════════════════════════════ */
+    function showLiveNavBar(remainingDist, remainingTime) {
+      const bar = document.getElementById('liveNavBar');
+      document.getElementById('liveNavStats').textContent =
+        remainingDist !== undefined
+          ? `  ·  ${fmtDist(remainingDist)}  ·  ${fmtTime(remainingDist)}`
+          : '';
+      bar.classList.add('visible');
+    }
+    function hideLiveNavBar() {
+      document.getElementById('liveNavBar').classList.remove('visible');
+    }
+
+    /* ════════════════════════════════════════════════════════════════
        BOTTOM SHEET
     ════════════════════════════════════════════════════════════════ */
-    const SHEET_COLLAPSED_H = 110;
+    const SHEET_COLLAPSED_H = 120;
     const SHEET_EXPANDED_RATIO = 0.52;
     let sheetState = 'hidden', _dragStartY = 0, _dragStartH = 0, _isDragging = false;
 
@@ -2931,15 +3276,15 @@
       sheetState = 'hidden';
       document.getElementById('mapCtrlGroup').style.bottom = '24px';
     }
-    function expandSheet() { sheetState === 'expanded' ? showSheet('collapsed') : showSheet('expanded'); }
+    function expandSheet() { if (isAppOffline()) return; sheetState === 'expanded' ? showSheet('collapsed') : showSheet('expanded'); }
 
     function setupSheetDrag() {
       const handle = document.getElementById('sheetHandle');
       const el = document.getElementById('bottomSheet');
-      handle.addEventListener('touchstart', e => { _isDragging = true; _dragStartY = e.changedTouches[0].clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; }, { passive: true });
+      handle.addEventListener('touchstart', e => { if (isAppOffline()) return; _isDragging = true; _dragStartY = e.changedTouches[0].clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; }, { passive: true });
       window.addEventListener('touchmove', e => { if (!_isDragging) return; const dy = _dragStartY - e.changedTouches[0].clientY; applySheetHeight(Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + dy)), false); }, { passive: true });
       window.addEventListener('touchend', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); }, { passive: true });
-      handle.addEventListener('mousedown', e => { _isDragging = true; _dragStartY = e.clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; e.preventDefault(); });
+      handle.addEventListener('mousedown', e => { if (isAppOffline()) return; _isDragging = true; _dragStartY = e.clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; e.preventDefault(); });
       window.addEventListener('mousemove', e => { if (!_isDragging) return; applySheetHeight(Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + (_dragStartY - e.clientY))), false); });
       window.addEventListener('mouseup', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); });
     }
@@ -2951,10 +3296,94 @@
     function fmtTime(m) { const mins = Math.ceil(m / 1.4 / 60); return mins < 1 ? '<1 min' : mins + ' min'; }
 
     /* ════════════════════════════════════════════════════════════════
-       RENDER ROUTE INFO PANELS
+       REMAINING DISTANCE CALCULATION
+       Computes the remaining route distance from the user's current
+       position to the destination along the active path.
     ════════════════════════════════════════════════════════════════ */
-    function renderMobileSheet(results, activeIdx, destName) {
+    function calcRemainingDistance(userPos, pathIndices) {
+      if (!pathIndices || pathIndices.length < 2) return 0;
+      /* Find the closest segment on the remaining path */
+      let closestSegIdx = 0, closestDist = Infinity, closestFrac = 0;
+      for (let i = 0; i < pathIndices.length - 1; i++) {
+        const a = graph.nodes[pathIndices[i]];
+        const b = graph.nodes[pathIndices[i + 1]];
+        const np = nearestPointOnSegment(userPos, a, b);
+        const d = hav(userPos, np);
+        if (d < closestDist) {
+          closestDist = d;
+          closestSegIdx = i;
+          /* fraction along segment */
+          const segLen = hav(a, b);
+          closestFrac = segLen > 0 ? hav(a, np) / segLen : 0;
+        }
+      }
+      /* Sum distance: partial segment + remaining full segments */
+      let rem = 0;
+      const a = graph.nodes[pathIndices[closestSegIdx]];
+      const b = graph.nodes[pathIndices[closestSegIdx + 1]];
+      rem += hav(a, b) * (1 - closestFrac);
+      for (let i = closestSegIdx + 1; i < pathIndices.length - 1; i++) {
+        rem += hav(graph.nodes[pathIndices[i]], graph.nodes[pathIndices[i + 1]]);
+      }
+      return rem;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       UPDATE LIVE NAVIGATION UI (called on each GPS tick)
+    ════════════════════════════════════════════════════════════════ */
+    function updateLiveNavUI() {
+      if (!isNavigating || !userLatLng || !currentPathIndices.length) return;
+      const userPos = { lat: userLatLng[0], lng: userLatLng[1] };
+      const remDist = calcRemainingDistance(userPos, currentPathIndices);
+      const remTimeStr = fmtTime(remDist);
+      const remDistStr = fmtDist(remDist);
+
+      /* Mobile sheet compact row */
+      if (isMobile()) {
+        document.getElementById('sheetTime').textContent = remTimeStr;
+        document.getElementById('sheetDist').textContent = remDistStr;
+        /* Live indicator row */
+        document.getElementById('liveRemainingText').textContent =
+          `Live · ${remDistStr} remaining · ${remTimeStr}`;
+        document.getElementById('liveRemainingRow').classList.add('show');
+      }
+      /* Desktop pill */
+      else {
+        const pill = document.querySelector('#desktopRouteStack .route-pill.active');
+        if (pill) {
+          const vals = pill.querySelectorAll('.pill-val');
+          if (vals[0]) vals[0].textContent = remDistStr;
+          if (vals[1]) vals[1].textContent = remTimeStr;
+        }
+      }
+      /* Map overlay bar */
+      showLiveNavBar(remDist);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RENDER ROUTE INFO PANELS  (live nav = single route only)
+    ════════════════════════════════════════════════════════════════ */
+    function renderMobileSheet(results, activeIdx, destName, liveMode) {
       if (!isMobile()) return;
+      const sheetEl = document.getElementById('bottomSheet');
+
+      if (liveMode) {
+        /* Live nav: single route, no expand/route list */
+        const res = results[0];
+        document.getElementById('sheetDestName').textContent = destName || '–';
+        document.getElementById('sheetTime').textContent = fmtTime(res.distance);
+        document.getElementById('sheetDist').textContent = fmtDist(res.distance);
+        document.getElementById('expandHint').style.display = 'none';
+        document.getElementById('liveRemainingRow').classList.add('show');
+        document.getElementById('liveRemainingText').textContent =
+          `Live · ${fmtDist(res.distance)} remaining · ${fmtTime(res.distance)}`;
+        showSheet('collapsed');
+        return;
+      }
+
+      /* Normal multi-route mode */
+      document.getElementById('expandHint').style.display = '';
+      document.getElementById('liveRemainingRow').classList.remove('show');
       const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance);
       const active = sorted.find(r => r.origIdx === activeIdx) || sorted[0];
       document.getElementById('sheetDestName').textContent = destName || '–';
@@ -2967,15 +3396,36 @@
         const card = document.createElement('div'); card.className = 'route-card' + (isActive ? ' active' : '');
         const lbl = si === 0 ? '⚡ Shortest' : 'Route ' + (si + 1);
         card.innerHTML = `<div class="rc-top"><span class="rc-label ${si === 0 ? 'best' : ''}">${lbl}</span>${isActive ? '<span class="rc-active-badge">● Active</span>' : ''}</div><div class="rc-stats"><div class="rc-stat"><div class="rc-icon time"><i class="fas fa-clock"></i></div><div class="rc-text"><span class="rc-val">${fmtTime(res.distance)}</span><span class="rc-unit">Est. Time</span></div></div><div class="rc-divider"></div><div class="rc-stat"><div class="rc-icon dist"><i class="fas fa-road"></i></div><div class="rc-text"><span class="rc-val">${fmtDist(res.distance)}</span><span class="rc-unit">Distance</span></div></div></div>`;
-        card.addEventListener('click', () => { renderSelectedRoute(res.origIdx); renderMobileSheet(results, res.origIdx, destName); showSheet('collapsed'); });
+        card.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); renderMobileSheet(results, res.origIdx, destName, false); showSheet('collapsed'); });
         container.appendChild(card);
       });
       showSheet('collapsed');
     }
 
-    function renderDesktopRouteStack(results, activeIdx) {
+    function renderDesktopRouteStack(results, activeIdx, liveMode) {
       const stack = document.getElementById('desktopRouteStack'); if (!stack) return;
       stack.innerHTML = '';
+
+      if (liveMode) {
+        /* Single pill for live mode with live badge */
+        const res = results[0];
+        const box = document.createElement('div'); box.className = 'route-pill active';
+        box.innerHTML = `
+        <div class="pill-header">
+          <span class="pill-label best">Shortest Route</span>
+          <span class="pill-badge live">⬤ Live</span>
+        </div>
+        <div class="pill-stats">
+          <div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Remaining</span></div>
+          <div class="pill-divider"></div>
+          <div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div>
+        </div>
+        <div class="live-nav-indicator"><span class="live-dot"></span> GPS tracking active</div>`;
+        stack.appendChild(box);
+        return;
+      }
+
+      /* Normal multi-route mode */
       const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance);
       sorted.forEach((res, si) => {
         const isActive = res.origIdx === activeIdx;
@@ -2983,7 +3433,7 @@
         const lbl = si === 0 ? 'Shortest Route' : 'Route ' + (si + 1);
         const badge = isActive ? '<span class="pill-badge active">● Active</span>' : '<span class="pill-badge">View</span>';
         box.innerHTML = `<div class="pill-header"><span class="pill-label ${si === 0 ? 'best' : ''}">${lbl}</span>${badge}</div><div class="pill-stats"><div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Distance</span></div><div class="pill-divider"></div><div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div></div>`;
-        box.addEventListener('click', () => renderSelectedRoute(res.origIdx));
+        box.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); });
         stack.appendChild(box);
       });
     }
@@ -2993,6 +3443,8 @@
       hideSheet();
       document.getElementById('arrivedToast').classList.remove('show');
       document.getElementById('desktopArrived').classList.remove('show');
+      document.getElementById('liveRemainingRow').classList.remove('show');
+      hideLiveNavBar();
       hasArrived = false;
     }
 
@@ -3001,6 +3453,8 @@
     ════════════════════════════════════════════════════════════════ */
     function showArrivedNotification(destName) {
       if (hasArrived) return; hasArrived = true; isNavigating = false; stopArrowAnimation();
+      hideLiveNavBar();
+      document.getElementById('liveRemainingRow').classList.remove('show');
       const sub = destName ? `You have arrived at ${destName}.` : 'You have arrived.';
       if (isMobile()) {
         hideSheet();
@@ -3027,6 +3481,7 @@
     let lastUpdateTime = 0;
     const UPDATE_THRESHOLD = 2000, PROXIMITY_THRESHOLD = 15, DEVIATION_THRESHOLD = 25, ARRIVED_THRESHOLD = 20;
     let hasArrived = false;
+    let liveNavMode = false; /* true = current location mode, single-route only */
     let graph = { nodes: [], edges: [] }, nodeIndex = new Map(), places = [];
     let lastResults, activeRouteIndex = 0;
     const KROUTES = 5;
@@ -3137,6 +3592,7 @@
       document.body.style.overflow = '';
     }
     function navigateFromSideMenu() {
+      if (isAppOffline()) return;
       const locationName = currentSidebarLocationName;
       if (!locationName || locationName === 'Current Location') return;
       closeSidebar();
@@ -3158,7 +3614,6 @@
       { src: 'lab 3.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+3', alt: 'Lab 3' }
     ];
     let carouselIdx = 0, lbIdx = 0;
-
     function initCarousel() {
       const dc = document.getElementById('carouselDots'); dc.innerHTML = '';
       galleryImages.forEach((_, i) => { const d = document.createElement('button'); d.className = 'carousel-dot' + (i === 0 ? ' active' : ''); d.addEventListener('click', () => goCarousel(i)); dc.appendChild(d); });
@@ -3186,12 +3641,7 @@
       document.getElementById('lbPrev').addEventListener('click', () => goLightbox((lbIdx - 1 + galleryImages.length) % galleryImages.length));
       document.getElementById('lbNext').addEventListener('click', () => goLightbox((lbIdx + 1) % galleryImages.length));
       document.getElementById('lightbox').addEventListener('click', e => { if (e.target === document.getElementById('lightbox')) closeLightbox(); });
-      document.addEventListener('keydown', e => {
-        if (!document.getElementById('lightbox').classList.contains('active')) return;
-        if (e.key === 'Escape') closeLightbox();
-        if (e.key === 'ArrowLeft') goLightbox((lbIdx - 1 + galleryImages.length) % galleryImages.length);
-        if (e.key === 'ArrowRight') goLightbox((lbIdx + 1) % galleryImages.length);
-      });
+      document.addEventListener('keydown', e => { if (!document.getElementById('lightbox').classList.contains('active')) return; if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') goLightbox((lbIdx - 1 + galleryImages.length) % galleryImages.length); if (e.key === 'ArrowRight') goLightbox((lbIdx + 1) % galleryImages.length); });
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -3207,17 +3657,9 @@
     /* ════════════════════════════════════════════════════════════════
        ARROW ANIMATION
     ════════════════════════════════════════════════════════════════ */
-    function buildCumDist(ll) { const c = [0]; for (let i = 1; i < ll.length; i++) c.push(c[i - 1] + hav({ lat: ll[i - 1][0], lng: ll[i - 1][1] }, { lat: ll[i][0], lng: ll[i][1] })); return c; }
-    function interpolateOnPath(ll, cum, prog) {
-      const total = cum[cum.length - 1], target = prog * total; let lo = 0, hi = cum.length - 1;
-      while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= target) lo = mid; else hi = mid; }
-      const sl = cum[hi] - cum[lo], t = sl > 0 ? (target - cum[lo]) / sl : 0, a = ll[lo], b = ll[hi];
-      const lat = a[0] + (b[0] - a[0]) * t, lng = a[1] + (b[1] - a[1]) * t, dy = b[0] - a[0], dx = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180);
-      return { lat, lng, angleDeg: Math.atan2(dx, dy) * 180 / Math.PI };
-    }
-    function makeArrowIcon(deg) {
-      return L.divIcon({ className: 'route-arrow-marker', html: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${deg}deg);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><circle cx="18" cy="18" r="17" fill="rgba(253,203,110,0.18)"/><circle cx="18" cy="18" r="13" fill="#fdcb6e" stroke="#e17055" stroke-width="2"/><polygon points="18,6 24,22 18,18 12,22" fill="#cc6600"/><circle cx="18" cy="25" r="2.5" fill="#cc6600"/></svg>`, iconSize: [36, 36], iconAnchor: [18, 18] });
-    }
+    function buildCumDist(ll) { const c = [0]; for (let i = 1; i < ll.length; i++)c.push(c[i - 1] + hav({ lat: ll[i - 1][0], lng: ll[i - 1][1] }, { lat: ll[i][0], lng: ll[i][1] })); return c; }
+    function interpolateOnPath(ll, cum, prog) { const total = cum[cum.length - 1], target = prog * total; let lo = 0, hi = cum.length - 1; while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= target) lo = mid; else hi = mid; } const sl = cum[hi] - cum[lo], t = sl > 0 ? (target - cum[lo]) / sl : 0, a = ll[lo], b = ll[hi]; const lat = a[0] + (b[0] - a[0]) * t, lng = a[1] + (b[1] - a[1]) * t, dy = b[0] - a[0], dx = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180); return { lat, lng, angleDeg: Math.atan2(dx, dy) * 180 / Math.PI }; }
+    function makeArrowIcon(deg) { return L.divIcon({ className: 'route-arrow-marker', html: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${deg}deg);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><circle cx="18" cy="18" r="17" fill="rgba(253,203,110,0.18)"/><circle cx="18" cy="18" r="13" fill="#fdcb6e" stroke="#e17055" stroke-width="2"/><polygon points="18,6 24,22 18,18 12,22" fill="#cc6600"/><circle cx="18" cy="25" r="2.5" fill="#cc6600"/></svg>`, iconSize: [36, 36], iconAnchor: [18, 18] }); }
     function startArrowAnimation(ll, sp = 0) {
       stopArrowAnimation(); if (!ll || ll.length < 2) return;
       arrowRouteLatlngs = ll; arrowProgress = sp;
@@ -3225,7 +3667,7 @@
       if (!arrowMarker) arrowMarker = L.marker([init.lat, init.lng], { icon: makeArrowIcon(init.angleDeg), zIndexOffset: 1200, interactive: false }).addTo(campusMap);
       else { arrowMarker.setLatLng([init.lat, init.lng]); arrowMarker.setIcon(makeArrowIcon(init.angleDeg)); }
       let lts = null;
-      function loop(ts) { if (lts !== null) { arrowProgress += ARROW_SPEED * (ts - lts); if (arrowProgress >= 1) arrowProgress = 0; } lts = ts; const p = interpolateOnPath(arrowRouteLatlngs, cum, arrowProgress); arrowMarker.setLatLng([p.lat, p.lng]); arrowMarker.setIcon(makeArrowIcon(p.angleDeg)); arrowAnimFrameId = requestAnimationFrame(loop); }
+      function loop(ts) { if (isAppOffline()) { arrowAnimFrameId = requestAnimationFrame(loop); return; } if (lts !== null) { arrowProgress += ARROW_SPEED * (ts - lts); if (arrowProgress >= 1) arrowProgress = 0; } lts = ts; const p = interpolateOnPath(arrowRouteLatlngs, cum, arrowProgress); arrowMarker.setLatLng([p.lat, p.lng]); arrowMarker.setIcon(makeArrowIcon(p.angleDeg)); arrowAnimFrameId = requestAnimationFrame(loop); }
       arrowAnimFrameId = requestAnimationFrame(loop);
     }
     function stopArrowAnimation() {
@@ -3250,7 +3692,8 @@
         let bd = Infinity, bnId = null, bEdge = null, bPt = null;
         for (let i = 0; i < graph.nodes.length - 1; i++) { const d = hav(p, graph.nodes[i]); if (d < bd) { bd = d; bnId = graph.nodes[i].id; bEdge = null; } }
         for (const [aId, bId] of graph.edges) { const ai = graph.nodes.findIndex(n => n.id === aId), bi = graph.nodes.findIndex(n => n.id === bId); if (ai === -1 || bi === -1) continue; const np = nearestPointOnSegment(p, graph.nodes[ai], graph.nodes[bi]), d = hav(p, np); if (d < bd) { bd = d; bEdge = [aId, bId]; bPt = np; bnId = null; } }
-        if (bEdge && bPt) { const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng }; graph.nodes.push(sNode); const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0])); if (ei !== -1) graph.edges.splice(ei, 1); graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]); } else if (bnId) graph.edges.push([bnId, eId]);
+        if (bEdge && bPt) { const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng }; graph.nodes.push(sNode); const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0])); if (ei !== -1) graph.edges.splice(ei, 1); graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]); }
+        else if (bnId) graph.edges.push([bnId, eId]);
       });
       nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i]));
     }
@@ -3266,30 +3709,104 @@
     function clearRoutes() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; } if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } stopArrowAnimation(); }
     function setStartEndMarkers(A, B) { if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } startMarker = L.marker([A.lat, A.lng], { icon: createStartIcon(), zIndexOffset: 900 }).addTo(campusMap).bindPopup(`<strong>Start:</strong><br/>${A.name}`); endMarker = L.marker([B.lat, B.lng], { icon: createEndIcon(), zIndexOffset: 1000 }).addTo(campusMap).bindPopup(`<strong>Destination:</strong><br/>${B.name}`).openPopup(); }
     function animatedPolyline(ll, opts, dur = 1500) { const pl = L.polyline([], opts), st = Date.now(), tot = ll.length; function animate() { const el = Date.now() - st, prog = Math.min(el / dur, 1), pts = Math.floor(prog * tot); if (pts > 0) { const part = ll.slice(0, pts); if (prog < 1 && pts < tot) { const s = (prog * tot) - pts, c = ll[pts - 1], n = ll[pts]; part.push([c[0] + (n[0] - c[0]) * s, c[1] + (n[1] - c[1]) * s]); } pl.setLatLngs(part); } if (prog < 1) animationFrameId = requestAnimationFrame(animate); } animate(); return pl; }
+
+    /* Live mode: render only the single shortest route polyline */
+    function renderLiveNavRoute(pathIndices) {
+      if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; }
+      const ll = pathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
+      const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
+      const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
+      routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap);
+      startArrowAnimation(ll, arrowProgress);
+    }
+
     function renderDynamicRoute() { if (!isNavigating || !currentPathIndices.length) return; if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } const ll = currentPathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap); startArrowAnimation(ll, arrowProgress); }
+
     function renderSelectedRoute(selectedIndex) {
+      if (isAppOffline()) return;
       const results = lastResults; if (!results || !results.length) return;
       activeRouteIndex = selectedIndex; clearRoutes();
+
+      /* In live nav mode, always show only the single best route (no alternates) */
+      if (liveNavMode) {
+        const pathIndices = results[0].path;
+        const ll = pathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
+        const border = animatedPolyline(ll, { color: '#fff', weight: 10, opacity: 0.9, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
+        const pr = animatedPolyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
+        routeLayerGroup = L.layerGroup([border, pr]).addTo(campusMap);
+        setTimeout(() => startArrowAnimation(ll, 0), 1600);
+        fullRoutePath = ll;
+        currentPathIndices = pathIndices.slice();
+        if (pr) setTimeout(() => campusMap.fitBounds(L.polyline(ll).getBounds().pad(0.22)), 100);
+        return;
+      }
+
+      /* Normal mode: show active + faded alternates */
       const layers = [];
-      results.forEach((res, idx) => { const ll = res.path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); if (idx !== selectedIndex) { const ab = L.polyline(ll, { color: 'rgba(255,255,255,0.5)', weight: 7, opacity: 0.6, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); const al = L.polyline(ll, { color: '#a29bfe', weight: 5, opacity: 0.55, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); al.on('click', () => { renderSelectedRoute(idx); if (isMobile()) renderMobileSheet(results, idx, currentDestination ? currentDestination.name : ''); else renderDesktopRouteStack(results, idx); }); layers.push(ab, al); } });
+      results.forEach((res, idx) => {
+        const ll = res.path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
+        if (idx !== selectedIndex) {
+          const ab = L.polyline(ll, { color: 'rgba(255,255,255,0.5)', weight: 7, opacity: 0.6, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
+          const al = L.polyline(ll, { color: '#a29bfe', weight: 5, opacity: 0.55, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
+          al.on('click', () => { if (isAppOffline()) return; renderSelectedRoute(idx); if (isMobile()) renderMobileSheet(results, idx, currentDestination ? currentDestination.name : '', false); else renderDesktopRouteStack(results, idx, false); });
+          layers.push(ab, al);
+        }
+      });
       const sll = results[selectedIndex].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
       const sb = animatedPolyline(sll, { color: 'rgba(255,255,255,0.9)', weight: 10, opacity: 0.9, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
       const pr = animatedPolyline(sll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
       layers.push(sb, pr); routeLayerGroup = L.layerGroup(layers).addTo(campusMap);
       setTimeout(() => startArrowAnimation(sll, 0), 1600);
-      if (document.getElementById('fromBox').value === 'Current Location') { fullRoutePath = sll; currentPathIndices = results[selectedIndex].path.slice(); }
+      currentPathIndices = results[selectedIndex].path.slice();
       const fv = document.getElementById('fromBox').value, tv = document.getElementById('toBox').value;
       let A, B;
       if (fv === 'Current Location' && userLatLng) A = { lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }; else A = getLandmarkByNameOrId(fv);
       B = getLandmarkByNameOrId(tv);
       if (A && B) setStartEndMarkers(A, B);
       if (pr) setTimeout(() => campusMap.fitBounds(L.polyline(sll).getBounds().pad(0.22)), 100);
-      if (!isMobile()) renderDesktopRouteStack(results, selectedIndex);
+      if (!isMobile()) renderDesktopRouteStack(results, selectedIndex, false);
     }
-    function checkDeviationAndRecalc(up) { if (!isNavigating || !currentDestination || !up || !currentPathIndices || !currentPathIndices.length) return false; let mn = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < mn) mn = d; } for (let i = 0; i < currentPathIndices.length - 1; i++) { const d = hav(up, nearestPointOnSegment(up, graph.nodes[currentPathIndices[i]], graph.nodes[currentPathIndices[i + 1]])); if (d < mn) mn = d; } if (mn > DEVIATION_THRESHOLD) { recalcRouteFromCurrent(); return true; } return false; }
-    function recalcRouteFromCurrent() { if (!isNavigating || !userLatLng || !currentDestination) return; const up = { lat: userLatLng[0], lng: userLatLng[1] }; let nnIdx = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } }); if (nnIdx === null) return; const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return; const res = yensKShortests(nnIdx, dId, KROUTES); if (!res.length) return; lastResults = res; activeRouteIndex = 0; fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); currentPathIndices = res[0].path.slice(); setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination); renderDynamicRoute(); if (isMobile()) renderMobileSheet(res, 0, currentDestination.name); else renderDesktopRouteStack(res, 0); }
+
+    function checkDeviationAndRecalc(up) { if (isAppOffline()) return false; if (!isNavigating || !currentDestination || !up || !currentPathIndices || !currentPathIndices.length) return false; let mn = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < mn) mn = d; } for (let i = 0; i < currentPathIndices.length - 1; i++) { const d = hav(up, nearestPointOnSegment(up, graph.nodes[currentPathIndices[i]], graph.nodes[currentPathIndices[i + 1]])); if (d < mn) mn = d; } if (mn > DEVIATION_THRESHOLD) { recalcRouteFromCurrent(); return true; } return false; }
+
+    function recalcRouteFromCurrent() {
+      if (isAppOffline()) return;
+      if (!isNavigating || !userLatLng || !currentDestination) return;
+      const up = { lat: userLatLng[0], lng: userLatLng[1] };
+      let nnIdx = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } });
+      if (nnIdx === null) return;
+      const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return;
+      /* In live mode: only get shortest (K=1) */
+      const K = liveNavMode ? 1 : KROUTES;
+      const res = yensKShortests(nnIdx, dId, K); if (!res.length) return;
+      lastResults = res; activeRouteIndex = 0;
+      fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
+      currentPathIndices = res[0].path.slice();
+      setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination);
+      renderDynamicRoute();
+      if (isMobile()) renderMobileSheet(res, 0, currentDestination.name, liveNavMode);
+      else renderDesktopRouteStack(res, 0, liveNavMode);
+      updateLiveNavUI();
+    }
+
     function checkIfArrived(up) { if (!isNavigating || !currentDestination || hasArrived) return; if (hav(up, currentDestination) <= ARRIVED_THRESHOLD) showArrivedNotification(currentDestination.name); }
-    function updatePathBasedOnLocation() { if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return; const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now; const up = { lat: userLatLng[0], lng: userLatLng[1] }; checkIfArrived(up); if (hasArrived) return; if (checkDeviationAndRecalc(up)) return; let ci = 0, md = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } } if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); } }
+
+    function updatePathBasedOnLocation() {
+      if (isAppOffline()) return;
+      if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return;
+      const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now;
+      const up = { lat: userLatLng[0], lng: userLatLng[1] };
+      checkIfArrived(up); if (hasArrived) return;
+      if (checkDeviationAndRecalc(up)) return;
+
+      /* Advance path — remove already-passed nodes */
+      let ci = 0, md = Infinity;
+      for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } }
+      if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); }
+
+      /* Update real-time ETA/distance displays */
+      updateLiveNavUI();
+    }
 
     /* ════════════════════════════════════════════════════════════════
        LANDMARK HELPERS
@@ -3302,18 +3819,8 @@
     function initializeMap() {
       if (campusMap) { campusMap.invalidateSize(); return; }
       const cb = L.latLngBounds(L.latLng(11.029847, 77.032077), L.latLng(11.035600, 77.036616));
-      campusMap = L.map('mapContainer', {
-        maxBounds: cb,
-        maxBoundsViscosity: 1.0,
-        minZoom: 17,
-        maxZoom: 19,
-        preferCanvas: true,
-        attributionControl: false
-      }).setView([11.033400, 77.033864], 18);
-
-      // Initial tile layer — OSM Standard
+      campusMap = L.map('mapContainer', { maxBounds: cb, maxBoundsViscosity: 1.0, minZoom: 17, maxZoom: 19, preferCanvas: true, attributionControl: false }).setView([11.033400, 77.033864], 18);
       currentTileLayer = L.tileLayer(tileLayers.osm.url, tileLayers.osm.options).addTo(campusMap);
-
       loadCampusData();
       initializeLandmarkMarkers();
       initLayerSwitcher();
@@ -3331,6 +3838,7 @@
       });
       landmarkMarkersLayer.addTo(campusMap);
       document.getElementById('landmarkToggleBtn').addEventListener('click', () => {
+        if (isAppOffline()) return;
         if (landmarksVisible) { campusMap.removeLayer(landmarkMarkersLayer); landmarksVisible = false; document.getElementById('landmarkToggleBtn').classList.add('off'); }
         else { landmarkMarkersLayer.addTo(campusMap); landmarksVisible = true; document.getElementById('landmarkToggleBtn').classList.remove('off'); }
       });
@@ -3345,21 +3853,31 @@
       userWatchId = navigator.geolocation.watchPosition(pos => {
         userLatLng = [pos.coords.latitude, pos.coords.longitude];
         const ll = L.latLng(userLatLng[0], userLatLng[1]);
-        if (!userLocationMarker) { userLocationMarker = L.circleMarker(ll, { radius: 10, fillColor: '#6c5ce7', color: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 2000 }).addTo(campusMap); accuracyCircle = L.circle(ll, { radius: pos.coords.accuracy, color: '#6c5ce7', fillColor: '#6c5ce7', fillOpacity: 0.12, weight: 1 }).addTo(campusMap); }
-        else { userLocationMarker.setLatLng(ll); accuracyCircle.setLatLng(ll); accuracyCircle.setRadius(pos.coords.accuracy); }
+        if (!userLocationMarker) {
+          userLocationMarker = L.circleMarker(ll, { radius: 10, fillColor: '#6c5ce7', color: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 2000 }).addTo(campusMap);
+          accuracyCircle = L.circle(ll, { radius: pos.coords.accuracy, color: '#6c5ce7', fillColor: '#6c5ce7', fillOpacity: 0.12, weight: 1 }).addTo(campusMap);
+        } else {
+          userLocationMarker.setLatLng(ll);
+          accuracyCircle.setLatLng(ll);
+          accuracyCircle.setRadius(pos.coords.accuracy);
+        }
+        /* Pause route recalculation/live-nav updates while offline; the dot
+           itself can still move since GPS works without internet, but no
+           network-dependent routing logic runs until back online. */
         updatePathBasedOnLocation();
-      }, err => { console.warn('Geolocation error:', err); }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
-      document.getElementById('currentLocationBtn').addEventListener('click', () => { if (userLatLng) campusMap.setView(userLatLng, 18); else alert('Location not available yet.'); });
+      }, err => { console.warn('Geolocation error:', err) }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+      document.getElementById('currentLocationBtn').addEventListener('click', () => { if (isAppOffline()) return; if (userLatLng) campusMap.setView(userLatLng, 18); else alert('Location not available yet.'); });
     }
 
     /* ════════════════════════════════════════════════════════════════
        INPUT / DROPDOWN
     ════════════════════════════════════════════════════════════════ */
     function filterItems(iid, lid) { const inp = document.getElementById(iid), lst = document.getElementById(lid), items = Array.from(lst.getElementsByTagName('li')), f = inp.value.toLowerCase(); items.forEach(i => i.style.display = 'none'); if (!f) { items.forEach(i => i.style.display = ''); return; } items.forEach(i => { if (i.textContent.toLowerCase().startsWith(f)) i.style.display = ''; }); items.forEach(i => { if (!i.textContent.toLowerCase().startsWith(f) && i.textContent.toLowerCase().includes(f)) i.style.display = ''; }); }
-    function showList(lid) { document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'); document.getElementById(lid).style.display = 'block'; }
+    function showList(lid) { if (isAppOffline()) return; document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'); document.getElementById(lid).style.display = 'block'; }
     function populateDropdowns() { ['fromList', 'toList'].forEach(id => { const ul = document.getElementById(id); ul.innerHTML = ''; locationsList.forEach(loc => { const li = document.createElement('li'); li.textContent = loc; ul.appendChild(li); }); }); }
     function setupGlobalClickHandler() {
       document.addEventListener('click', e => {
+        if (isAppOffline()) return;
         if (e.target.tagName === 'LI' && e.target.closest('.dropdown')) { const inp = e.target.closest('.field-body')?.querySelector('input'); if (inp) { inp.value = e.target.textContent; if (inp.id === 'fromBox') { const btn = document.getElementById('curLocInlineBtn'); btn.classList.toggle('active', inp.value === 'Current Location'); } e.target.closest('.dropdown').style.display = 'none'; } return; }
         const inside = [...document.querySelectorAll('.field-body')].some(w => w.contains(e.target));
         if (!inside) setTimeout(() => document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'), 100);
@@ -3370,41 +3888,96 @@
        SEARCH & CLEAR
     ════════════════════════════════════════════════════════════════ */
     function searchRoute() {
-      const fl = document.getElementById('fromBox').value, tl = document.getElementById('toBox').value;
+      if (isAppOffline()) {
+        showOfflineOverlay();
+        return;
+      }
+      const fl = document.getElementById('fromBox').value;
+      const tl = document.getElementById('toBox').value;
       if (!fl || !tl) { alert('Please select both From and To locations'); return; }
       if (!campusMap) { initializeMap(); return; }
       hasArrived = false;
       document.getElementById('arrivedToast').classList.remove('show');
       document.getElementById('desktopArrived').classList.remove('show');
-      collapseNav(); closeLayerPanel(); startGeolocation();
+      hideLiveNavBar();
+      collapseNav(); closeLayerPanel();
+
       if (fl === 'Current Location') {
-        if (!userLatLng) { alert('Waiting for your location... Please allow location access.'); navigator.geolocation.getCurrentPosition(pos => { userLatLng = [pos.coords.latitude, pos.coords.longitude]; searchRoute(); }, () => alert('Could not get your current location.')); return; }
-        const B = getLandmarkByNameOrId(tl); if (!B) { alert('Invalid destination'); return; }
-        isNavigating = true; currentDestination = B;
-        let nnId = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav({ lat: userLatLng[0], lng: userLatLng[1] }, n); if (d < md) { md = d; nnId = i; } });
-        if (nnId === null) { alert('Could not connect to campus network'); isNavigating = false; return; }
-        const dId = nodeIndex.get(`ENT_${B.id}`); if (dId === undefined) { alert('Cannot find destination'); isNavigating = false; return; }
-        const res = yensKShortests(nnId, dId, KROUTES); if (!res.length) { alert('No path found'); isNavigating = false; return; }
-        lastResults = res; activeRouteIndex = 0; setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, B); renderSelectedRoute(0);
-        if (isMobile()) renderMobileSheet(res, 0, B.name); else renderDesktopRouteStack(res, 0); hideNavButtons();
+        /* ── LIVE NAVIGATION MODE ── */
+        startGeolocation();
+
+        /* Validate campus boundary */
+        const proceedWithNav = (lat, lng) => {
+          if (isAppOffline()) { showOfflineOverlay(); return; }
+          if (!isWithinCampus(lat, lng)) {
+            /* User is outside campus — show custom modal, abort live nav */
+            showCampusModal();
+            return;
+          }
+          /* User is inside campus — proceed with single-route live nav */
+          liveNavMode = true;
+          const B = getLandmarkByNameOrId(tl);
+          if (!B) { alert('Invalid destination'); return; }
+          isNavigating = true; currentDestination = B;
+
+          let nnId = null, md = Infinity;
+          graph.nodes.forEach((n, i) => { const d = hav({ lat, lng }, n); if (d < md) { md = d; nnId = i; } });
+          if (nnId === null) { alert('Could not connect to campus network'); isNavigating = false; liveNavMode = false; return; }
+
+          const dId = nodeIndex.get(`ENT_${B.id}`);
+          if (dId === undefined) { alert('Cannot find destination'); isNavigating = false; liveNavMode = false; return; }
+
+          /* K=1: only shortest path in live mode */
+          const res = yensKShortests(nnId, dId, 1);
+          if (!res.length) { alert('No path found'); isNavigating = false; liveNavMode = false; return; }
+
+          lastResults = res; activeRouteIndex = 0;
+          setStartEndMarkers({ lat, lng, name: 'Your Location' }, B);
+          renderSelectedRoute(0);
+          showLiveNavBar(res[0].distance);
+          if (isMobile()) renderMobileSheet(res, 0, B.name, true);
+          else renderDesktopRouteStack(res, 0, true);
+          hideNavButtons();
+        };
+
+        if (userLatLng) {
+          proceedWithNav(userLatLng[0], userLatLng[1]);
+        } else {
+          /* Get initial fix */
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              userLatLng = [pos.coords.latitude, pos.coords.longitude];
+              proceedWithNav(pos.coords.latitude, pos.coords.longitude);
+            },
+            () => alert('Could not get your current location. Please allow location access.')
+          );
+        }
       } else {
+        /* ── MANUAL / PLACE-TO-PLACE NAVIGATION ── */
+        liveNavMode = false;
         isNavigating = false; currentDestination = null;
         const A = getLandmarkByNameOrId(fl), B = getLandmarkByNameOrId(tl);
         if (!A || !B) { alert('Invalid location selected'); return; }
         const si = nodeIndex.get(`ENT_${A.id}`), di = nodeIndex.get(`ENT_${B.id}`);
         if (si === undefined || di === undefined) { alert('Cannot connect locations to campus network'); return; }
-        const res = yensKShortests(si, di, KROUTES); if (!res.length) { alert('No route found between these locations'); return; }
-        lastResults = res; activeRouteIndex = 0; setStartEndMarkers(A, B); renderSelectedRoute(0);
-        if (isMobile()) renderMobileSheet(res, 0, B.name); else renderDesktopRouteStack(res, 0); hideNavButtons();
+        const res = yensKShortests(si, di, KROUTES);
+        if (!res.length) { alert('No route found between these locations'); return; }
+        lastResults = res; activeRouteIndex = 0;
+        setStartEndMarkers(A, B); renderSelectedRoute(0);
+        if (isMobile()) renderMobileSheet(res, 0, B.name, false);
+        else renderDesktopRouteStack(res, 0, false);
+        hideNavButtons();
       }
     }
 
     function clearRoute() {
+      if (isAppOffline()) return;
       document.getElementById('fromBox').value = ''; document.getElementById('toBox').value = '';
       document.getElementById('curLocInlineBtn').classList.remove('active');
       document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
-      isNavigating = false; currentDestination = null; fullRoutePath = []; currentPathIndices = []; activeRouteIndex = 0; hasArrived = false;
-      clearRouteInfoPanels(); stopArrowAnimation();
+      isNavigating = false; liveNavMode = false; currentDestination = null; fullRoutePath = []; currentPathIndices = []; activeRouteIndex = 0; hasArrived = false;
+      clearRouteInfoPanels(); stopArrowAnimation(); hideLiveNavBar();
+      document.getElementById('liveRemainingRow').classList.remove('show');
       if (campusMap) clearRoutes();
       showNavButtons(); expandNav();
     }
@@ -3419,6 +3992,7 @@
       initCarousel();
       initLightbox();
       initializeMap();
+      startConnectivityWatcher();
 
       document.getElementById('overlay').addEventListener('click', closeSidebar);
       document.getElementById('closeBtn').addEventListener('click', closeSidebar);
@@ -3428,6 +4002,7 @@
       });
 
       document.getElementById('swapBtn').addEventListener('click', () => {
+        if (isAppOffline()) return;
         if (navButtonsHidden) restoreSearchUI();
         const fb = document.getElementById('fromBox'), tb = document.getElementById('toBox');
         [fb.value, tb.value] = [tb.value, fb.value];
@@ -3438,6 +4013,11 @@
       document.getElementById('fsCloseBtn').addEventListener('click', exitFullscreen);
       document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFullscreen) exitFullscreen(); });
       document.getElementById('ctrlToggleBtn').addEventListener('click', toggleCtrlGroup);
+
+      /* Close campus modal on backdrop click */
+      document.getElementById('campusModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('campusModal')) closeCampusModal();
+      });
     });
   </script>
 </body>

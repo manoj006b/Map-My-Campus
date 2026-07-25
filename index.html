@@ -2144,11 +2144,145 @@
       font-weight: 700;
     }
 
+    /* ══ MENU WIDGET (Food Court) ══ */
+    .menu-widget {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .menu-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .menu-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 6px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.80rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .menu-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+    }
+
+    .menu-tab.active {
+      background: linear-gradient(135deg, var(--purple) 0%, #4834d4 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(108, 92, 231, 0.4);
+    }
+
+    .menu-panel {
+      display: none;
+    }
+
+    .menu-panel.active {
+      display: block;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .menu-time-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0, 184, 148, 0.08);
+      border: 1px solid rgba(0, 184, 148, 0.25);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .menu-time-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(0, 184, 148, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .menu-time-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: #55efc4;
+      font-size: 0.88rem;
+    }
+
+    .menu-time-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .menu-items-list {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .menu-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .menu-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .menu-item-name {
+      font-size: 0.86rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .menu-item-price {
+      font-size: 0.86rem;
+      color: var(--purple2);
+      font-weight: 700;
+    }
+
+    .menu-note {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     .sidebar-carousel {
       position: relative;
       background: #0a0e27;
       border-radius: 10px;
       overflow: hidden;
+      max-width: 440px;
+      margin: 0 auto;
+      width: 100%;
     }
 
     .carousel-wrap {
@@ -2156,6 +2290,7 @@
       width: 100%;
       aspect-ratio: 16/10;
       overflow: hidden;
+      background: #05060f;
     }
 
     .carousel-img {
@@ -2163,14 +2298,17 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #05060f;
       opacity: 0;
-      transition: opacity 0.5s;
+      transform: scale(1.02);
+      transition: opacity 0.6s ease, transform 0.6s ease;
       cursor: pointer;
     }
 
     .carousel-img.active {
       opacity: 1;
+      transform: scale(1);
       z-index: 2;
     }
 
@@ -2260,6 +2398,7 @@
       border-radius: 10px;
       object-fit: contain;
       animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      touch-action: pan-y;
     }
 
     .lb-close {
@@ -2852,6 +2991,19 @@
 
       .explore-detail-content {
         padding: 16px 16px 28px;
+      }
+
+      .sidebar-carousel {
+        max-width: 100%;
+      }
+
+      .menu-tabs {
+        gap: 6px;
+      }
+
+      .menu-tab {
+        font-size: 0.72rem;
+        padding: 9px 4px;
       }
     }
 
@@ -3567,10 +3719,46 @@
       'Food Court 1': {
         info: [
           { icon: 'fas fa-utensils', label: 'Cuisine', text: 'South Indian breakfast, rice meals, snacks, juices, and beverages. Special meal packages available.' },
-          { icon: 'fas fa-clock', label: 'Timings', text: 'Breakfast: 8:00 – 10:00 AM · Lunch: 12:00 – 2:00 PM · Snacks: 4:00 – 5:30 PM' },
-          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 200 students. Additional takeaway counters reduce peak-hour queues.' },
-          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'North-east corner of the campus, near Q Block and the Indoor Auditorium.' }
+          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 200 students. Additional takeaway counters reduce peak-hour queues.' }
         ],
+        menu: {
+          breakfast: {
+            label: 'Morning Breakfast',
+            time: '8:00 AM - 10:30 AM',
+            items: [
+              { name: 'Idly (1)', price: 10 },
+              { name: 'Roast (1)', price: 25 },
+              { name: 'Masala Dosa (1)', price: 50 },
+              { name: 'Poori (2)', price: 30 },
+              { name: 'Pongal (1)', price: 25 },
+              { name: 'Wada (1)', price: 15 }
+            ]
+          },
+          lunch: {
+            label: 'Lunch Combo',
+            time: '12:00 PM - 2:30 PM',
+            items: [
+              { name: 'Veg Meals (Full)', price: 60 },
+              { name: 'Curd Rice', price: 35 },
+              { name: 'Sambar Rice', price: 40 },
+              { name: 'Lemon Rice', price: 35 },
+              { name: 'Chapati (2) + Curry', price: 45 },
+              { name: 'Papad (1)', price: 5 }
+            ]
+          },
+          snacks: {
+            label: 'Evening Snacks',
+            time: '4:00 PM - 6:30 PM',
+            items: [
+              { name: 'Samosa (1)', price: 15 },
+              { name: 'Bajji (Mixed)', price: 20 },
+              { name: 'Vada Pav', price: 25 },
+              { name: 'Tea', price: 10 },
+              { name: 'Coffee', price: 12 },
+              { name: 'Fruit Juice', price: 25 }
+            ]
+          }
+        },
         images: [
           { src: 'FC1.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+1', alt: 'Food Court 1' },
           { src: 'FC1b.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+1+2', alt: 'Food Court 1 (2)' }
@@ -3579,10 +3767,44 @@
       'Food Court 2': {
         info: [
           { icon: 'fas fa-utensils', label: 'Cuisine', text: 'North Indian, Chinese, and fast food options. Popular evening snack destination for students.' },
-          { icon: 'fas fa-clock', label: 'Timings', text: 'Lunch: 11:30 AM – 2:30 PM · Evening Snacks: 3:30 – 6:00 PM' },
-          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 150 students. Open-air seating area available adjacent to the building.' },
-          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'South-west corner of the campus near the Alumni Block and Football Ground.' }
+          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 150 students. Open-air seating area available adjacent to the building.' }
         ],
+        menu: {
+          breakfast: {
+            label: 'Morning Breakfast',
+            time: '8:00 AM - 10:30 AM',
+            items: [
+              { name: 'Bread Omelette', price: 30 },
+              { name: 'Aloo Paratha (1)', price: 35 },
+              { name: 'Upma', price: 25 },
+              { name: 'Poha', price: 25 },
+              { name: 'Tea', price: 10 },
+              { name: 'Coffee', price: 12 }
+            ]
+          },
+          lunch: {
+            label: 'Lunch Combo',
+            time: '12:00 PM - 2:30 PM',
+            items: [
+              { name: 'Veg Fried Rice', price: 55 },
+              { name: 'Veg Noodles', price: 55 },
+              { name: 'Paneer Curry + Rice', price: 65 },
+              { name: 'Roti (2) + Dal', price: 45 },
+              { name: 'Gobi Manchurian', price: 40 }
+            ]
+          },
+          snacks: {
+            label: 'Evening Snacks',
+            time: '4:00 PM - 6:30 PM',
+            items: [
+              { name: 'French Fries', price: 40 },
+              { name: 'Veg Puff', price: 15 },
+              { name: 'Cutlet (2)', price: 25 },
+              { name: 'Cold Coffee', price: 30 },
+              { name: 'Milkshake', price: 35 }
+            ]
+          }
+        },
         images: [
           { src: 'FC2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+2', alt: 'Food Court 2' },
           { src: 'FC2b.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+2+2', alt: 'Food Court 2 (2)' }
@@ -3910,6 +4132,16 @@
       'can1': 'Food Court 1', 'can2': 'Food Court 2'
     };
 
+    /* Reverse lookup: canonical location name -> marker lat/lng (used for smart
+       map panning when the side info panel opens, so the marker + label stay
+       visible instead of being hidden behind the panel). */
+    const nameToMarkerLatLng = {};
+    Object.keys(markerToLocationName).forEach(id => {
+      const nm = markerToLocationName[id];
+      const mk = locationmarker.find(lm => lm.id === id);
+      if (mk && !nameToMarkerLatLng[nm]) nameToMarkerLatLng[nm] = [mk.lat, mk.lng];
+    });
+
     const landmarkMapping = {
       'Front Gate': 'front', 'Admission Office': 'admiss', 'Library': 'lib', 'Principal Office': 'prin',
       'S F Office': 'sf', 'Aided Office': 'aided', 'Placement Office': 'pla', 'Hostel Office': 'hostel',
@@ -3975,22 +4207,65 @@
     }
 
     function buildCarouselHTML(images, menuId) {
+      const multi = images.length > 1;
       const imgTags = images.map((img, i) =>
         `<img class="carousel-img${i === 0 ? ' active' : ''}" data-carousel-id="${menuId}" data-idx="${i}" src="${img.src}" alt="${img.alt}" onerror="this.src='${img.fallback}'">`
       ).join('');
-      const dotTags = images.map((_, i) =>
+      const dotTags = multi ? images.map((_, i) =>
         `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-carousel-id="${menuId}" data-idx="${i}"></button>`
-      ).join('');
+      ).join('') : '';
       return `
       <div class="sidebar-carousel">
         <div class="carousel-wrap">
           ${imgTags}
-          <span class="carousel-counter" id="carouselCounter_${menuId}">1 / ${images.length}</span>
+          ${multi ? `<span class="carousel-counter" id="carouselCounter_${menuId}">1 / ${images.length}</span>` : ''}
         </div>
-        <button class="carousel-arrow left" data-carousel-id="${menuId}" data-dir="-1">&#8249;</button>
+        ${multi ? `<button class="carousel-arrow left" data-carousel-id="${menuId}" data-dir="-1">&#8249;</button>
         <button class="carousel-arrow right" data-carousel-id="${menuId}" data-dir="1">&#8250;</button>
-        <div class="carousel-dots" id="carouselDots_${menuId}">${dotTags}</div>
+        <div class="carousel-dots" id="carouselDots_${menuId}">${dotTags}</div>` : ''}
       </div>`;
+    }
+
+    /* ── Menu tabs (Breakfast / Lunch / Snacks) ── */
+    const MENU_TAB_META = {
+      breakfast: { label: 'Breakfast', icon: '☀️' },
+      lunch: { label: 'Lunch', icon: '🍛' },
+      snacks: { label: 'Snacks', icon: '🍿' }
+    };
+    function buildMenuHTML(menu, menuId) {
+      const order = Object.keys(MENU_TAB_META).filter(k => menu[k]);
+      if (!order.length) return '';
+      const tabs = order.map((key, i) =>
+        `<button class="menu-tab${i === 0 ? ' active' : ''}" data-menu-id="${menuId}" data-tab="${key}">${MENU_TAB_META[key].icon} ${MENU_TAB_META[key].label}</button>`
+      ).join('');
+      const panels = order.map((key, i) => {
+        const sec = menu[key];
+        const items = sec.items.map(it =>
+          `<div class="menu-item-row"><span class="menu-item-name">${escHtml(it.name)}</span><span class="menu-item-price">₹${it.price}</span></div>`
+        ).join('');
+        return `<div class="menu-panel${i === 0 ? ' active' : ''}" data-menu-id="${menuId}" data-panel="${key}">
+          <div class="menu-time-card">
+            <div class="menu-time-icon">${MENU_TAB_META[key].icon}</div>
+            <div><div class="menu-time-label">${escHtml(sec.label)}</div><div class="menu-time-sub">${escHtml(sec.time)}</div></div>
+          </div>
+          <div class="menu-items-list">${items}</div>
+        </div>`;
+      }).join('');
+      return `<div class="menu-widget" data-menu-id="${menuId}">
+        <div class="menu-tabs">${tabs}</div>
+        ${panels}
+        <div class="menu-note"><i class="fas fa-info-circle"></i><span>Menu and prices are subject to change. Please check at the counter for the latest updates.</span></div>
+      </div>`;
+    }
+    function bindMenuTabEvents(container) {
+      container.querySelectorAll('.menu-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const key = tab.dataset.tab, widget = tab.closest('.menu-widget');
+          if (!widget) return;
+          widget.querySelectorAll('.menu-tab').forEach(t => t.classList.toggle('active', t === tab));
+          widget.querySelectorAll('.menu-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === key));
+        });
+      });
     }
 
     function buildSideMenuContent(locationName, idPrefix = '') {
@@ -4037,6 +4312,14 @@
         html += `</ul></details>`;
       }
 
+      /* Menu accordion (Breakfast / Lunch / Snacks tabs) */
+      if (data.menu) {
+        html += `<details class="accordion-item" open>
+        <summary><i class="fas fa-utensils" style="width:16px;text-align:center;"></i> Menu</summary>
+        <div style="padding:14px 16px;">${buildMenuHTML(data.menu, menuId)}</div>
+      </details>`;
+      }
+
       /* Images accordion */
       if (data.images && data.images.length) {
         html += `<details class="accordion-item">
@@ -4056,33 +4339,107 @@
     let currentSideMenuImages = [];
     let lbIdx = 0;
 
+    /* ═══════════════════════════════════════════════════════════════════
+       CAROUSEL AUTOPLAY MANAGEMENT
+    ═══════════════════════════════════════════════════════════════════ */
+    let carouselAutoplayTimers = {};
+    function clearCarouselAutoplay(menuId) {
+      if (carouselAutoplayTimers[menuId]) { clearInterval(carouselAutoplayTimers[menuId]); delete carouselAutoplayTimers[menuId]; }
+    }
+    function clearAllCarouselAutoplay() {
+      Object.keys(carouselAutoplayTimers).forEach(clearCarouselAutoplay);
+    }
+    function startCarouselAutoplay(menuId) {
+      clearCarouselAutoplay(menuId);
+      carouselAutoplayTimers[menuId] = setInterval(() => stepCarousel(menuId, 1), 4500);
+    }
+    function initCarouselsAutoplay(container) {
+      const seen = new Set();
+      container.querySelectorAll('.sidebar-carousel').forEach(wrap => {
+        const img = wrap.querySelector('.carousel-img');
+        if (!img) return;
+        const menuId = img.dataset.carouselId;
+        if (seen.has(menuId)) return;
+        seen.add(menuId);
+        if (wrap.querySelectorAll('.carousel-img').length > 1) {
+          startCarouselAutoplay(menuId);
+          wrap.addEventListener('mouseenter', () => clearCarouselAutoplay(menuId));
+          wrap.addEventListener('mouseleave', () => startCarouselAutoplay(menuId));
+        }
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       MAP PANNING — keep selected marker/label visible when the side
+       info panel is open (both normal and fullscreen map modes)
+    ═══════════════════════════════════════════════════════════════════ */
+    let _mapViewBeforeSidebar = null;
+    function panMapForSidebar(lat, lng) {
+      if (!campusMap) return;
+      if (!_mapViewBeforeSidebar) _mapViewBeforeSidebar = { center: campusMap.getCenter(), zoom: campusMap.getZoom() };
+      requestAnimationFrame(() => {
+        if (!campusMap) return;
+        const sidebarEl = document.getElementById('sideMenu');
+        const sidebarWidth = sidebarEl ? sidebarEl.offsetWidth : 380;
+        const mapSize = campusMap.getSize();
+        const visibleWidth = Math.max(mapSize.x - sidebarWidth, 120);
+        const targetPoint = campusMap.latLngToContainerPoint([lat, lng]);
+        const desiredPoint = L.point(visibleWidth * 0.42, mapSize.y / 2);
+        const dx = targetPoint.x - desiredPoint.x;
+        const dy = targetPoint.y - desiredPoint.y;
+        const curCenterPoint = campusMap.latLngToContainerPoint(campusMap.getCenter());
+        const newCenterPoint = L.point(curCenterPoint.x + dx, curCenterPoint.y + dy);
+        const newCenterLatLng = campusMap.containerPointToLatLng(newCenterPoint);
+        campusMap.panTo(newCenterLatLng, { animate: true, duration: 0.5 });
+      });
+    }
+    function restoreMapViewAfterSidebar() {
+      if (_mapViewBeforeSidebar && campusMap) {
+        campusMap.setView(_mapViewBeforeSidebar.center, _mapViewBeforeSidebar.zoom, { animate: true, duration: 0.4 });
+        _mapViewBeforeSidebar = null;
+      }
+    }
+
     function openSidebar(locationName) {
       const name = locationName || 'E Block';
       currentSidebarLocationName = name;
+      clearAllCarouselAutoplay();
       document.getElementById('sideMenuTitle').textContent = name;
       const inList = locationsList.includes(name) && name !== 'Current Location';
       document.getElementById('sideMenuDirectionBtn').style.display = inList ? '' : 'none';
 
       /* Render dynamic content */
-      document.getElementById('sideMenuContent').innerHTML = buildSideMenuContent(name);
+      const contentEl = document.getElementById('sideMenuContent');
+      contentEl.innerHTML = buildSideMenuContent(name);
 
       /* Store images for lightbox */
       const data = LOCATION_DB[name];
       currentSideMenuImages = (data && data.images) ? data.images : [];
       lbIdx = 0;
 
-      /* Wire up carousel interactions after DOM is updated */
-      bindCarouselEvents();
+      /* Wire up carousel + menu tab interactions after DOM is updated */
+      bindCarouselEvents(contentEl);
+      bindMenuTabEvents(contentEl);
+      initCarouselsAutoplay(contentEl);
 
       document.getElementById('sideMenu').classList.add('open');
       document.getElementById('overlay').classList.add('active');
       document.body.style.overflow = 'hidden';
+
+      /* Keep the selected marker/label visible next to the panel (desktop only —
+         on mobile the panel covers the full width so panning has no benefit) */
+      if (!isMobile()) {
+        const coord = nameToMarkerLatLng[name];
+        if (coord) panMapForSidebar(coord[0], coord[1]);
+      }
     }
 
     function closeSidebar() {
       document.getElementById('sideMenu').classList.remove('open');
       document.getElementById('overlay').classList.remove('active');
       document.body.style.overflow = '';
+      clearAllCarouselAutoplay();
+      restoreMapViewAfterSidebar();
     }
 
     function navigateFromSideMenu() {
@@ -4110,6 +4467,7 @@
           e.stopPropagation();
           const menuId = btn.dataset.carouselId, dir = parseInt(btn.dataset.dir);
           stepCarousel(menuId, dir);
+          startCarouselAutoplay(menuId);
         });
       });
 
@@ -4118,6 +4476,7 @@
         dot.addEventListener('click', () => {
           const menuId = dot.dataset.carouselId, idx = parseInt(dot.dataset.idx);
           goCarousel(menuId, idx);
+          startCarouselAutoplay(menuId);
         });
       });
 
@@ -4181,6 +4540,23 @@
       img.src = g.src; img.alt = g.alt; img.onerror = () => { img.src = g.fallback; };
       document.getElementById('lbCounter').textContent = `${lbIdx + 1} / ${currentSideMenuImages.length}`;
     }
+    let _lbTouchStartX = null, _lbTouchStartY = null;
+    function initLightboxSwipe() {
+      const lb = document.getElementById('lightbox');
+      lb.addEventListener('touchstart', e => {
+        _lbTouchStartX = e.changedTouches[0].clientX;
+        _lbTouchStartY = e.changedTouches[0].clientY;
+      }, { passive: true });
+      lb.addEventListener('touchend', e => {
+        if (_lbTouchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - _lbTouchStartX;
+        const dy = e.changedTouches[0].clientY - _lbTouchStartY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          dx < 0 ? goLightbox(lbIdx + 1) : goLightbox(lbIdx - 1);
+        }
+        _lbTouchStartX = null; _lbTouchStartY = null;
+      }, { passive: true });
+    }
     function initLightbox() {
       document.getElementById('lbClose').addEventListener('click', closeLightbox);
       document.getElementById('lbPrev').addEventListener('click', () => goLightbox(lbIdx - 1));
@@ -4192,6 +4568,7 @@
         if (e.key === 'ArrowLeft') goLightbox(lbIdx - 1);
         if (e.key === 'ArrowRight') goLightbox(lbIdx + 1);
       });
+      initLightboxSwipe();
     }
 
     /* ═══════════════════════════════════════════════════════════════════
@@ -4562,10 +4939,11 @@
       document.getElementById('explorePage').classList.add('open');
     }
     function closeExplorePage() {
+      clearAllCarouselAutoplay();
       document.getElementById('explorePage').classList.remove('open');
       document.getElementById('exploreDetailPage').classList.remove('open');
     }
-    function closeExploreDetail() { document.getElementById('exploreDetailPage').classList.remove('open'); }
+    function closeExploreDetail() { clearAllCarouselAutoplay(); document.getElementById('exploreDetailPage').classList.remove('open'); }
 
     function buildExploreDetailContent(name) {
       const item = EXPLORE_ITEMS.find(i => i.name === name);
@@ -4603,6 +4981,7 @@
 
     function openExploreDetail(name) {
       currentSidebarLocationName = name;
+      clearAllCarouselAutoplay();
       document.getElementById('exploreDetailTitle').textContent = name;
       const contentEl = document.getElementById('exploreDetailContent');
       contentEl.innerHTML = buildExploreDetailContent(name);
@@ -4613,6 +4992,8 @@
       lbIdx = 0;
 
       bindCarouselEvents(contentEl);
+      bindMenuTabEvents(contentEl);
+      initCarouselsAutoplay(contentEl);
       contentEl.querySelectorAll('.explore-sub-card-header').forEach(h => {
         h.addEventListener('click', () => h.closest('.explore-sub-card').classList.toggle('open'));
       });

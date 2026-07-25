@@ -301,6 +301,11 @@
       font-size: 0.88rem;
     }
 
+    .field-body input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .dropdown {
       display: none;
       position: absolute;
@@ -333,6 +338,16 @@
     .dropdown li:hover {
       background: rgba(108, 92, 231, 0.18);
       color: var(--purple2);
+    }
+
+    .dropdown li.highlight {
+      background: rgba(108, 92, 231, 0.12);
+    }
+
+    .dropdown li mark {
+      background: transparent;
+      color: var(--gold);
+      font-weight: 700;
     }
 
     .swap-row {
@@ -549,7 +564,6 @@
       background: rgba(255, 255, 255, 0.12);
     }
 
-    /* ── Live nav indicator (desktop pill) ── */
     .live-nav-indicator {
       display: flex;
       align-items: center;
@@ -605,6 +619,91 @@
       font-size: 0.72rem;
       color: var(--muted);
       margin-top: 3px;
+    }
+
+    /* ══ INVALID LOCATION MODAL ══ */
+    #invalidLocModal {
+      position: fixed;
+      inset: 0;
+      z-index: 99500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    #invalidLocModal.open {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .invalid-modal-box {
+      background: linear-gradient(160deg, #15173d 0%, #0e1030 100%);
+      border: 1px solid rgba(253, 203, 110, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(253, 203, 110, 0.15);
+      max-width: 360px;
+      width: calc(100% - 40px);
+      padding: 32px 28px;
+      text-align: center;
+      animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .invalid-modal-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .invalid-modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .invalid-modal-msg {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+
+    .invalid-modal-field {
+      display: inline-block;
+      background: rgba(253, 203, 110, 0.12);
+      border: 1px solid rgba(253, 203, 110, 0.3);
+      border-radius: 10px;
+      padding: 4px 14px;
+      font-size: 0.82rem;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .invalid-modal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--purple) 0%, #4834d4 100%);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+      transition: all 0.25s;
+    }
+
+    .invalid-modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(108, 92, 231, 0.55);
     }
 
     /* ══ CAMPUS OUT-OF-BOUNDS MODAL ══ */
@@ -680,7 +779,7 @@
       box-shadow: 0 8px 28px rgba(108, 92, 231, 0.55);
     }
 
-    /* ══ OFFLINE / NETWORK STATUS ══ */
+    /* ══ OFFLINE ══ */
     #offlineOverlay {
       position: fixed;
       inset: 0;
@@ -776,7 +875,6 @@
       animation: pulse 1.4s ease-in-out infinite;
     }
 
-    /* Small toast shown when connection is restored */
     #onlineToast {
       position: fixed;
       top: 18px;
@@ -850,7 +948,7 @@
       }
     }
 
-    /* ══ MAP AREA ══ */
+    /* ══ MAP ══ */
     .map-section {
       flex: 1;
       position: relative;
@@ -1034,6 +1132,10 @@
       background: #e17055;
     }
 
+    #exploreBtn {
+      background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+    }
+
     #mapCtrlGroup.ctrl-collapsed .map-btn {
       opacity: 0;
       pointer-events: none;
@@ -1054,6 +1156,10 @@
 
     #mapCtrlGroup:not(.ctrl-collapsed) #landmarkToggleBtn {
       transition-delay: 0.20s;
+    }
+
+    #mapCtrlGroup:not(.ctrl-collapsed) #exploreBtn {
+      transition-delay: 0.25s;
     }
 
     /* ══ LAYER SWITCHER ══ */
@@ -1298,7 +1404,7 @@
       content: '✓';
     }
 
-    /* ── 3D Status Badge ── */
+    /* 3D Badge */
     #badge3D {
       position: absolute;
       top: 14px;
@@ -1376,7 +1482,7 @@
       animation: fadeDown 0.4s ease;
     }
 
-    /* ══ LIVE NAV STATUS BAR (map overlay) ══ */
+    /* Live Nav Bar */
     #liveNavBar {
       position: absolute;
       top: 14px;
@@ -1443,12 +1549,7 @@
       transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    #bottomSheet.collapsed {
-      display: flex;
-      flex-direction: column;
-      transform: translateY(0);
-    }
-
+    #bottomSheet.collapsed,
     #bottomSheet.expanded {
       display: flex;
       flex-direction: column;
@@ -1559,11 +1660,6 @@
 
     .expand-hint i {
       font-size: 10px;
-    }
-
-    /* Hide expand button during live nav */
-    .live-nav-mode .expand-hint {
-      display: none;
     }
 
     .sheet-expanded-panel {
@@ -1752,7 +1848,6 @@
       margin: 0 6px;
     }
 
-    /* ── Live remaining label on mobile sheet ── */
     .live-remaining-row {
       display: none;
       align-items: center;
@@ -1937,15 +2032,6 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
-    .sidebar-direction-btn:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-
-    .sidebar-direction-btn i {
-      font-size: 13px;
-    }
-
     .sidebar-content {
       padding: 20px;
       flex: 1;
@@ -2022,6 +2108,40 @@
     .room-range {
       font-size: 0.8rem;
       color: var(--muted);
+    }
+
+    /* Sidebar info rows for non-block locations */
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      border-left: 3px solid var(--purple);
+    }
+
+    .info-row i {
+      color: var(--purple2);
+      margin-top: 2px;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .info-row-text {
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .info-row-label {
+      font-size: 0.70rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 2px;
+      font-weight: 700;
     }
 
     .sidebar-carousel {
@@ -2266,6 +2386,363 @@
       margin-bottom: 4px;
     }
 
+    /* ══ EXPLORE MODULE ══ */
+    #explorePage,
+    #exploreDetailPage {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      background: var(--navy);
+      display: none;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    #explorePage.open,
+    #exploreDetailPage.open {
+      display: flex;
+      transform: translateX(0);
+    }
+
+    .explore-header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      background: linear-gradient(165deg, #15173d 0%, #0e1030 100%);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .explore-back-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .explore-back-btn:hover {
+      background: rgba(108, 92, 231, 0.35);
+      transform: translateX(-2px);
+    }
+
+    .explore-header-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      flex: 1;
+    }
+
+    .explore-header-title span {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 2px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .explore-search-wrap {
+      flex-shrink: 0;
+      padding: 14px 20px;
+    }
+
+    .explore-search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+
+    .explore-search-box i {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .explore-search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .explore-search-box input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .explore-search-clear {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.10);
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 10px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .explore-search-clear.show {
+      display: flex;
+    }
+
+    .explore-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 28px;
+    }
+
+    .explore-body::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .explore-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+
+    .explore-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .explore-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .explore-card:hover {
+      background: rgba(108, 92, 231, 0.12);
+      border-color: rgba(108, 92, 231, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .explore-card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(108, 92, 231, 0.25), rgba(162, 155, 254, 0.12));
+      border: 1px solid rgba(108, 92, 231, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .explore-card-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .explore-card-tag {
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 600;
+    }
+
+    .explore-empty {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .explore-empty i {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+      display: block;
+      opacity: 0.5;
+    }
+
+    .explore-detail-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 20px 36px;
+    }
+
+    .explore-detail-content::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .explore-detail-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+
+    .explore-detail-direction-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .explore-direction-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 44px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--purple) 0%, #4834d4 100%);
+      border: none;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(108, 92, 231, 0.4);
+      transition: all 0.22s;
+    }
+
+    .explore-direction-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(108, 92, 231, 0.55);
+    }
+
+    .explore-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--purple2);
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .explore-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .explore-sub-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .explore-sub-card-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      gap: 10px;
+    }
+
+    .explore-sub-card-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .explore-sub-card-body {
+      padding: 0 16px 16px;
+      display: none;
+    }
+
+    .explore-sub-card.open .explore-sub-card-body {
+      display: block;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .explore-sub-card-chevron {
+      transition: transform 0.25s;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .explore-sub-card.open .explore-sub-card-chevron {
+      transform: rotate(180deg);
+      color: var(--purple2);
+    }
+
+    .explore-facility-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(108, 92, 231, 0.15);
+      border: 1px solid rgba(108, 92, 231, 0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.72rem;
+      color: var(--purple2);
+      font-weight: 600;
+      margin: 3px 4px 3px 0;
+    }
+
+    .explore-mini-direction {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 184, 148, 0.15);
+      border: 1px solid rgba(0, 184, 148, 0.35);
+      border-radius: 14px;
+      padding: 7px 14px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #55efc4;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .explore-mini-direction:hover {
+      background: rgba(0, 184, 148, 0.28);
+    }
+
+    .explore-no-route-note {
+      margin-top: 10px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
     /* ══ MOBILE ══ */
     @media(max-width:768px) {
       body {
@@ -2344,6 +2821,37 @@
       #layerPanel {
         right: 72px;
         width: 230px;
+      }
+
+      .explore-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+      }
+
+      .explore-card {
+        padding: 14px 10px;
+      }
+
+      .explore-card-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1.25rem;
+      }
+
+      .explore-header {
+        padding: 14px 16px;
+      }
+
+      .explore-search-wrap {
+        padding: 12px 16px;
+      }
+
+      .explore-body {
+        padding: 4px 16px 24px;
+      }
+
+      .explore-detail-content {
+        padding: 16px 16px 28px;
       }
     }
 
@@ -2490,8 +2998,8 @@
           <div class="field-body" style="position:relative;overflow:visible;">
             <span class="field-label">From</span>
             <div class="from-input-wrap" style="position:relative;overflow:visible;">
-              <input type="text" id="fromBox" placeholder="Current location or place" onclick="onFromBoxClick();"
-                onkeyup="filterItems('fromBox','fromList')">
+              <input type="text" id="fromBox" placeholder="Current location or place" autocomplete="off"
+                onclick="onFromBoxClick();" onkeyup="filterItems('fromBox','fromList')">
               <button class="cur-loc-btn" id="curLocInlineBtn" title="Use current location"
                 onclick="setCurrentLocationInFrom(event)">
                 <i class="fas fa-location-crosshairs"></i>
@@ -2508,8 +3016,8 @@
           <div class="field-body" style="position:relative;overflow:visible;">
             <span class="field-label">To</span>
             <div style="position:relative;overflow:visible;">
-              <input type="text" id="toBox" placeholder="Where are you going?" onclick="onToBoxClick();"
-                onkeyup="filterItems('toBox','toList')">
+              <input type="text" id="toBox" placeholder="Where are you going?" autocomplete="off"
+                onclick="onToBoxClick();" onkeyup="filterItems('toBox','toList')">
               <ul id="toList" class="dropdown"></ul>
             </div>
           </div>
@@ -2544,26 +3052,22 @@
 
     <div id="mapContainer"></div>
 
-    <!-- 3D badge -->
     <div id="badge3D">
       <span class="badge3d-dot"></span>
       <span class="badge3d-label">3D Buildings</span>
       <span class="badge3d-sub">&nbsp;· OSM Data</span>
     </div>
-    <!-- 3D error toast -->
     <div id="toast3DError">
       <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>
       3D Buildings unavailable. Showing standard map.
     </div>
 
-    <!-- Live navigation status bar -->
     <div id="liveNavBar">
       <span class="live-nav-dot"></span>
       <span class="live-nav-label">Live Navigation</span>
       <span class="live-nav-stats" id="liveNavStats"></span>
     </div>
 
-    <!-- Map control cluster -->
     <div id="mapCtrlGroup">
       <button id="ctrlToggleBtn" title="Toggle controls"><i class="fas fa-chevron-up"></i></button>
       <button class="map-btn" id="currentLocationBtn" title="My Location"><i
@@ -2571,9 +3075,9 @@
       <button class="map-btn" id="fullscreenBtn" title="Fullscreen Map"><i class="fas fa-expand"></i></button>
       <button class="map-btn" id="layerBtn" title="Switch Map Layer"><i class="fas fa-layer-group"></i></button>
       <button class="map-btn" id="landmarkToggleBtn" title="Toggle Landmarks"><i class="fas fa-map-pin"></i></button>
+      <button class="map-btn" id="exploreBtn" title="Explore Campus"><i class="fas fa-compass"></i></button>
     </div>
 
-    <!-- Layer panel -->
     <div id="layerPanel">
       <div class="layer-panel-header">
         <span class="layer-panel-title">Map Style</span>
@@ -2636,12 +3140,6 @@
               <polygon points="54,45 54,28 66,24 66,41" fill="rgba(108,92,231,0.65)" />
               <polygon points="54,28 66,24 75,30 63,34" fill="rgba(162,155,254,0.7)" />
               <polygon points="63,34 75,30 75,47 63,51" fill="rgba(74,63,200,0.65)" />
-              <polygon points="76,46 76,36 85,33 85,43" fill="rgba(108,92,231,0.55)" />
-              <polygon points="76,36 85,33 91,37 82,40" fill="rgba(162,155,254,0.6)" />
-              <polygon points="82,40 91,37 91,47 82,50" fill="rgba(74,63,200,0.55)" />
-              <rect x="23" y="23" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.8)" />
-              <rect x="28" y="21" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.6)" />
-              <rect x="23" y="30" width="3" height="3" rx="0.5" fill="rgba(253,203,110,0.7)" />
             </svg>
           </div>
           <div class="layer-label"><span class="layer-name">3D Buildings</span><span class="layer-check"></span></div>
@@ -2683,7 +3181,6 @@
       </div>
     </div>
 
-    <!-- Arrived toast -->
     <div id="arrivedToast">
       <span class="toast-emoji">🎉</span>
       <div class="toast-title">You've Arrived!</div>
@@ -2696,28 +3193,37 @@
     <div class="campus-modal-box">
       <span class="campus-modal-icon">📍</span>
       <div class="campus-modal-title">Outside Campus Area</div>
-      <div class="campus-modal-msg">
-        Your live location is not within the campus area.<br>
-        Please choose an alternative starting location from the list.
-      </div>
-      <button class="campus-modal-btn" onclick="closeCampusModal()">
-        <i class="fas fa-map-marker-alt"></i> Choose Starting Point
-      </button>
+      <div class="campus-modal-msg">Your live location is not within the campus area.<br>Please choose an alternative
+        starting location from the list.</div>
+      <button class="campus-modal-btn" onclick="closeCampusModal()"><i class="fas fa-map-marker-alt"></i> Choose
+        Starting Point</button>
     </div>
   </div>
 
-  <!-- ═══ OFFLINE / NO INTERNET OVERLAY ═══ -->
+  <!-- ═══ INVALID LOCATION MODAL ═══ -->
+  <div id="invalidLocModal">
+    <div class="invalid-modal-box">
+      <span class="invalid-modal-icon">⚠️</span>
+      <div class="invalid-modal-title">Invalid Location</div>
+      <div class="invalid-modal-msg">The location you entered doesn't match any known place on campus. Please select a
+        valid location from the dropdown list or enter the correct name.</div>
+      <div class="invalid-modal-field" id="invalidLocField"></div>
+      <br>
+      <button class="invalid-modal-btn" onclick="closeInvalidLocModal()"><i class="fas fa-keyboard"></i> Try
+        Again</button>
+    </div>
+  </div>
+
+  <!-- ═══ OFFLINE OVERLAY ═══ -->
   <div id="offlineOverlay" role="alert" aria-live="assertive">
     <div class="offline-box">
       <div class="offline-icon-wrap"><i class="fas fa-wifi-slash" id="offlineIcon"></i></div>
       <div class="offline-title">No Internet Connection</div>
-      <div class="offline-msg">Please check your network and try again. Navigation, route search, and live
-        tracking are paused until your connection is restored.</div>
+      <div class="offline-msg">Please check your network and try again. Navigation, route search, and live tracking are
+        paused until your connection is restored.</div>
       <div class="offline-status-row"><span class="offline-status-dot"></span> Waiting for connection</div>
     </div>
   </div>
-
-  <!-- ═══ CONNECTION RESTORED TOAST ═══ -->
   <div id="onlineToast">
     <i class="fas fa-check-circle"></i>
     <span>Internet Connection Restored</span>
@@ -2728,7 +3234,7 @@
   <aside id="sideMenu" class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-header-top">
-        <h1 id="sideMenuTitle">E Block</h1>
+        <h1 id="sideMenuTitle">Location</h1>
         <button class="close-btn" id="closeBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -2743,118 +3249,39 @@
         </button>
       </div>
     </div>
-    <div class="sidebar-content">
-      <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>Ground Floor</summary>
-        <ul class="department-list">
-          <li>
-            <p class="depat-name">B.Sc Computer Technology (SF)</p>
-            <p class="room-range">Rooms: E101, E120</p>
-          </li>
-          <li>
-            <p class="depat-name">B.Sc Information Technology (SF)</p>
-            <p class="room-range">Rooms: E101, E120</p>
-          </li>
-          <li>
-            <p class="depat-name">B.A English (Aided)</p>
-            <p class="room-range">Rooms: E101, E120</p>
-          </li>
-          <li>
-            <p class="depat-name">Laboratory</p>
-            <p class="room-range">Room: E109</p>
-          </li>
-        </ul>
-      </details>
-      <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>First Floor</summary>
-        <ul class="department-list">
-          <li>
-            <p class="depat-name">B.Sc Computer Science (SF)</p>
-            <p class="room-range">Rooms: E109, E206, E207, E209, E210, E212</p>
-          </li>
-          <li>
-            <p class="depat-name">M.Sc Software Systems (SF)</p>
-            <p class="room-range">Rooms: E201, E202</p>
-          </li>
-          <li>
-            <p class="depat-name">B.A Tamil (Aided)</p>
-            <p class="room-range">Rooms: E201, E202</p>
-          </li>
-          <li>
-            <p class="depat-name">Laboratory</p>
-            <p class="room-range">Room: E209, E210</p>
-          </li>
-        </ul>
-      </details>
-      <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-          </svg>Second Floor</summary>
-        <ul class="department-list">
-          <li>
-            <p class="depat-name">B.Sc Computer Application (SF)</p>
-            <p class="room-range">Rooms: E301, E320</p>
-          </li>
-          <li>
-            <p class="depat-name">B.Voc Networking &amp; Mobile Application (SF)</p>
-            <p class="room-range">Rooms: E301, E320</p>
-          </li>
-          <li>
-            <p class="depat-name">B.Sc Computer Science with Data Analytics (SF)</p>
-            <p class="room-range">Rooms: E301, E320</p>
-          </li>
-          <li>
-            <p class="depat-name">Laboratory</p>
-            <p class="room-range">Room: E309</p>
-          </li>
-        </ul>
-      </details>
-      <details class="accordion-item">
-        <summary><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>Images</summary>
-        <ul class="department-list" style="padding:12px;">
-          <li style="padding:0;background:transparent;border-left:none;">
-            <div class="sidebar-carousel" id="sidebarCarousel">
-              <div class="carousel-wrap">
-                <img class="carousel-img active" src="E Block.jpg" alt="E Block"
-                  onerror="this.src='https://placehold.co/400x250/12143a/a29bfe?text=E+Block'">
-                <img class="carousel-img" src="E Block2.webp" alt="E Block 2"
-                  onerror="this.src='https://placehold.co/400x250/12143a/a29bfe?text=E+Block+2'">
-                <img class="carousel-img" src="lab 2.jpg" alt="Lab 2"
-                  onerror="this.src='https://placehold.co/400x250/12143a/a29bfe?text=Lab+2'">
-                <img class="carousel-img" src="lab 3.jpg" alt="Lab 3"
-                  onerror="this.src='https://placehold.co/400x250/12143a/a29bfe?text=Lab+3'">
-                <span class="carousel-counter" id="carouselCounter">1 / 4</span>
-              </div>
-              <button class="carousel-arrow left" id="carouselPrev">&#8249;</button>
-              <button class="carousel-arrow right" id="carouselNext">&#8250;</button>
-              <div class="carousel-dots" id="carouselDots"></div>
-            </div>
-          </li>
-        </ul>
-      </details>
+    <div class="sidebar-content" id="sideMenuContent">
+      <!-- Dynamically populated -->
     </div>
   </aside>
+
+  <!-- ═══ EXPLORE CAMPUS — Grid Page ═══ -->
+  <div id="explorePage">
+    <div class="explore-header">
+      <button class="explore-back-btn" id="exploreBackBtn" title="Back to Map"><i
+          class="fas fa-arrow-left"></i></button>
+      <div class="explore-header-title">Explore Campus<span>Discover every block, office &amp; facility</span></div>
+    </div>
+    <div class="explore-search-wrap">
+      <div class="explore-search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="exploreSearchInput" placeholder="Search places, offices, blocks..." autocomplete="off">
+        <button class="explore-search-clear" id="exploreSearchClear" title="Clear"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="explore-body">
+      <div class="explore-grid" id="exploreGrid"></div>
+    </div>
+  </div>
+
+  <!-- ═══ EXPLORE CAMPUS — Detail Page ═══ -->
+  <div id="exploreDetailPage">
+    <div class="explore-header">
+      <button class="explore-back-btn" id="exploreDetailBackBtn" title="Back to Explore"><i
+          class="fas fa-arrow-left"></i></button>
+      <div class="explore-header-title" id="exploreDetailTitle">Location</div>
+    </div>
+    <div class="explore-detail-content" id="exploreDetailContent"></div>
+  </div>
 
   <!-- Lightbox -->
   <div id="lightbox">
@@ -2864,183 +3291,411 @@
       <img id="lightboxImg" src="" alt="">
     </div>
     <button class="lb-arrow right" id="lbNext">&#8250;</button>
-    <div class="lb-counter" id="lbCounter">1 / 4</div>
+    <div class="lb-counter" id="lbCounter">1 / 1</div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <!-- OSMBuildings (pinned stable release, AFTER Leaflet) -->
   <script src="https://cdn.jsdelivr.net/gh/kekscom/osmbuildings@0.2.2b/dist/OSMBuildings-Leaflet.js"
     onerror="window._osmBuildingsLoadFailed=true;"></script>
 
   <script>
-    /* ═══════════════════════════════════════════════════════
-       NETWORK / CONNECTIVITY MONITOR
-       Detects loss/restoration of internet connectivity using
-       the browser's online/offline events, backed by a periodic
-       lightweight reachability ping (since navigator.onLine only
-       reflects network-adapter state, not true internet access).
-       While offline: navigation, routing, live tracking, layer
-       loads, and search are paused. Existing map/route visuals
-       stay on screen. On restore: overlay hides, a brief toast
-       confirms reconnection, and normal operation resumes.
-    ═══════════════════════════════════════════════════════ */
-    let isOffline = false;
-    let connectivityCheckTimer = null;
-    let onlineToastTimer = null;
-    const CONNECTIVITY_CHECK_INTERVAL = 15000; /* re-verify every 15s while online, as a safety net */
-    const CONNECTIVITY_PING_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-
-    function isAppOffline() { return isOffline; }
-
-    function showOfflineOverlay() {
-      const ov = document.getElementById('offlineOverlay');
-      if (!ov.classList.contains('open')) ov.classList.add('open');
-    }
-    function hideOfflineOverlay() {
-      document.getElementById('offlineOverlay').classList.remove('open');
-    }
-    function showOnlineToast() {
-      const t = document.getElementById('onlineToast');
-      t.classList.add('show');
-      clearTimeout(onlineToastTimer);
-      onlineToastTimer = setTimeout(() => t.classList.remove('show'), 3200);
-    }
-
-    /* Disable/enable all interactive controls that require network access.
-       Existing map tiles/routes already rendered remain visible untouched. */
-    function setNetworkDependentControlsDisabled(disabled) {
-      const ids = ['but1', 'but2', 'currentLocationBtn', 'fullscreenBtn', 'layerBtn', 'landmarkToggleBtn', 'ctrlToggleBtn'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = disabled;
-      });
-      const fromBox = document.getElementById('fromBox');
-      const toBox = document.getElementById('toBox');
-      const curLocBtn = document.getElementById('curLocInlineBtn');
-      if (fromBox) fromBox.disabled = disabled;
-      if (toBox) toBox.disabled = disabled;
-      if (curLocBtn) curLocBtn.style.pointerEvents = disabled ? 'none' : '';
-      if (disabled) {
-        document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
-        closeLayerPanel();
+    /* ═══════════════════════════════════════════════════════════════════
+       LOCATION DATABASE — Data-driven side menu definitions
+       Each entry defines what appears in the side panel when that
+       landmark marker or popup "Get Directions" is tapped.
+    ═══════════════════════════════════════════════════════════════════ */
+    const LOCATION_DB = {
+      'E Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Computer Technology (SF)', rooms: 'E101, E120' },
+              { name: 'B.Sc Information Technology (SF)', rooms: 'E101, E120' },
+              { name: 'B.A English (Aided)', rooms: 'E101, E120' },
+              { name: 'Laboratory', rooms: 'E109' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'B.Sc Computer Science (SF)', rooms: 'E109, E206, E207, E209, E210, E212' },
+              { name: 'M.Sc Software Systems (SF)', rooms: 'E201, E202' },
+              { name: 'B.A Tamil (Aided)', rooms: 'E201, E202' },
+              { name: 'Laboratory', rooms: 'E209, E210' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'B.Sc Computer Application (SF)', rooms: 'E301, E320' },
+              { name: 'B.Voc Networking & Mobile Application (SF)', rooms: 'E301, E320' },
+              { name: 'B.Sc Computer Science with Data Analytics (SF)', rooms: 'E301, E320' },
+              { name: 'Laboratory', rooms: 'E309' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'E Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=E+Block', alt: 'E Block' },
+          { src: 'E Block2.webp', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=E+Block+2', alt: 'E Block 2' },
+          { src: 'lab 2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Lab+2', alt: 'Lab 2' },
+          { src: 'lab 3.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Lab+3', alt: 'Lab 3' }
+        ]
+      },
+      'A Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Mathematics (Aided)', rooms: 'A101 – A110' },
+              { name: 'B.Sc Physics (Aided)', rooms: 'A111 – A120' },
+              { name: 'Administrative Office', rooms: 'A102' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'B.Sc Chemistry (Aided)', rooms: 'A201 – A210' },
+              { name: 'M.Sc Mathematics (Aided)', rooms: 'A211 – A215' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'B.Sc Statistics (SF)', rooms: 'A301 – A310' },
+              { name: 'Research Lab', rooms: 'A312' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'A Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=A+Block', alt: 'A Block' },
+          { src: 'A Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=A+Block+2', alt: 'A Block 2' }
+        ]
+      },
+      'B Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Com (Aided)', rooms: 'B101 – B115' },
+              { name: 'B.Com PA (Aided)', rooms: 'B116 – B120' },
+              { name: 'Accounts Lab', rooms: 'B109' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'M.Com (Aided)', rooms: 'B201 – B210' },
+              { name: 'B.Com CA (SF)', rooms: 'B211 – B220' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'BBA (SF)', rooms: 'B301 – B315' },
+              { name: 'MBA (SF)', rooms: 'B316 – B320' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'B Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=B+Block', alt: 'B Block' },
+          { src: 'B Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=B+Block+2', alt: 'B Block 2' }
+        ]
+      },
+      'C Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Zoology (Aided)', rooms: 'C101 – C110' },
+              { name: 'B.Sc Botany (Aided)', rooms: 'C111 – C120' },
+              { name: 'Botany Lab', rooms: 'C108' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'B.Sc Microbiology (SF)', rooms: 'C201 – C210' },
+              { name: 'B.Sc Biochemistry (SF)', rooms: 'C211 – C220' },
+              { name: 'Microbiology Lab', rooms: 'C205' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'M.Sc Zoology (Aided)', rooms: 'C301 – C308' },
+              { name: 'M.Sc Botany (Aided)', rooms: 'C309 – C316' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'C Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=C+Block', alt: 'C Block' },
+          { src: 'C Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=C+Block+2', alt: 'C Block 2' }
+        ]
+      },
+      'D Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.A History (Aided)', rooms: 'D101 – D110' },
+              { name: 'B.A Economics (Aided)', rooms: 'D111 – D120' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'B.A Sociology (SF)', rooms: 'D201 – D210' },
+              { name: 'M.A History (Aided)', rooms: 'D211 – D218' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'M.A Economics (Aided)', rooms: 'D301 – D308' },
+              { name: 'Research Centre', rooms: 'D310' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'D Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=D+Block', alt: 'D Block' },
+          { src: 'D Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=D+Block+2', alt: 'D Block 2' }
+        ]
+      },
+      'F Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Visual Communication (SF)', rooms: 'F101 – F110' },
+              { name: 'B.Sc Multimedia (SF)', rooms: 'F111 – F118' },
+              { name: 'Media Lab', rooms: 'F108' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'M.Sc Visual Communication (SF)', rooms: 'F201 – F208' },
+              { name: 'Photography Studio', rooms: 'F210' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'Post Production Suite', rooms: 'F301 – F305' },
+              { name: 'Animation Lab', rooms: 'F306' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'F Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=F+Block', alt: 'F Block' },
+          { src: 'F Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=F+Block+2', alt: 'F Block 2' }
+        ]
+      },
+      'G Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Home Science (Aided)', rooms: 'G101 – G110' },
+              { name: 'B.Sc Nutrition & Dietetics (SF)', rooms: 'G111 – G118' },
+              { name: 'Nutrition Lab', rooms: 'G109' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'M.Sc Home Science (Aided)', rooms: 'G201 – G208' },
+              { name: 'Textile & Fashion Lab', rooms: 'G210' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'M.Sc Nutrition & Dietetics (SF)', rooms: 'G301 – G308' },
+              { name: 'Clinical Nutrition Lab', rooms: 'G310' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'G Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=G+Block', alt: 'G Block' },
+          { src: 'G Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=G+Block+2', alt: 'G Block 2' }
+        ]
+      },
+      'Q Block': {
+        floors: [
+          {
+            label: 'Ground Floor', depts: [
+              { name: 'B.Sc Data Science (SF)', rooms: 'Q101 – Q110' },
+              { name: 'B.Sc Artificial Intelligence (SF)', rooms: 'Q111 – Q118' },
+              { name: 'AI & Data Lab', rooms: 'Q109' }
+            ]
+          },
+          {
+            label: 'First Floor', depts: [
+              { name: 'M.Sc Data Science (SF)', rooms: 'Q201 – Q208' },
+              { name: 'HPC Research Lab', rooms: 'Q210' }
+            ]
+          },
+          {
+            label: 'Second Floor', depts: [
+              { name: 'Innovation & Incubation Centre', rooms: 'Q301 – Q310' }
+            ]
+          }
+        ],
+        images: [
+          { src: 'Q Block.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Q+Block', alt: 'Q Block' },
+          { src: 'Q Block2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Q+Block+2', alt: 'Q Block 2' }
+        ]
+      },
+      'GRD Auditorium': {
+        info: [
+          { icon: 'fas fa-users', label: 'Seating Capacity', text: 'Approximately 800 seats, with fixed tiered seating and excellent sight lines.' },
+          { icon: 'fas fa-microphone-alt', label: 'Facilities', text: 'State-of-the-art sound system, AC, stage lighting, projection screen, and backstage rooms.' },
+          { icon: 'fas fa-calendar-alt', label: 'Usage', text: 'Major college events, annual days, cultural fests, guest lectures, and inter-college competitions.' },
+          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'Ground floor, near the main entrance. Accessible from the central campus pathway.' }
+        ],
+        images: [
+          { src: 'GRD.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=GRD+Auditorium', alt: 'GRD Auditorium' },
+          { src: 'GRD2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=GRD+Auditorium+2', alt: 'GRD Auditorium 2' }
+        ]
+      },
+      'Indoor Auditorium': {
+        info: [
+          { icon: 'fas fa-users', label: 'Seating Capacity', text: 'Approximately 400 seats, suitable for mid-size seminars, workshops, and sports events.' },
+          { icon: 'fas fa-basketball-ball', label: 'Sports Use', text: 'Hosts indoor sports events including Badminton, Table Tennis, and Yoga sessions.' },
+          { icon: 'fas fa-chalkboard-teacher', label: 'Academic Use', text: 'Used for seminars, placement training sessions, and department-level events.' },
+          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'Adjacent to the hostel wing and D Block, with separate entry from the campus road.' }
+        ],
+        images: [
+          { src: 'Indoor.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Indoor+Auditorium', alt: 'Indoor Auditorium' },
+          { src: 'Indoor2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Indoor+Auditorium+2', alt: 'Indoor Auditorium 2' }
+        ]
+      },
+      'Library': {
+        info: [
+          { icon: 'fas fa-book', label: 'Collection', text: 'Over 50,000 volumes covering Science, Arts, Commerce, and Technology. Includes reference, lending, and periodical sections.' },
+          { icon: 'fas fa-clock', label: 'Timings', text: 'Open 8:00 AM – 6:00 PM on weekdays. Reading room open till 8:00 PM during exams.' },
+          { icon: 'fas fa-wifi', label: 'Facilities', text: 'Digital library with e-resources, N-LIST access, printing, scanning, and Wi-Fi enabled reading hall.' },
+          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'Central campus building, easily accessible from all blocks via the main corridor.' }
+        ],
+        images: [
+          { src: 'Library.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Library', alt: 'Library' },
+          { src: 'Library2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Library+2', alt: 'Library 2' }
+        ]
+      },
+      'Food Court 1': {
+        info: [
+          { icon: 'fas fa-utensils', label: 'Cuisine', text: 'South Indian breakfast, rice meals, snacks, juices, and beverages. Special meal packages available.' },
+          { icon: 'fas fa-clock', label: 'Timings', text: 'Breakfast: 8:00 – 10:00 AM · Lunch: 12:00 – 2:00 PM · Snacks: 4:00 – 5:30 PM' },
+          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 200 students. Additional takeaway counters reduce peak-hour queues.' },
+          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'North-east corner of the campus, near Q Block and the Indoor Auditorium.' }
+        ],
+        images: [
+          { src: 'FC1.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+1', alt: 'Food Court 1' },
+          { src: 'FC1b.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+1+2', alt: 'Food Court 1 (2)' }
+        ]
+      },
+      'Food Court 2': {
+        info: [
+          { icon: 'fas fa-utensils', label: 'Cuisine', text: 'North Indian, Chinese, and fast food options. Popular evening snack destination for students.' },
+          { icon: 'fas fa-clock', label: 'Timings', text: 'Lunch: 11:30 AM – 2:30 PM · Evening Snacks: 3:30 – 6:00 PM' },
+          { icon: 'fas fa-users', label: 'Capacity', text: 'Seats approximately 150 students. Open-air seating area available adjacent to the building.' },
+          { icon: 'fas fa-map-marker-alt', label: 'Location', text: 'South-west corner of the campus near the Alumni Block and Football Ground.' }
+        ],
+        images: [
+          { src: 'FC2.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+2', alt: 'Food Court 2' },
+          { src: 'FC2b.jpg', fallback: 'https://placehold.co/400x250/12143a/a29bfe?text=Food+Court+2+2', alt: 'Food Court 2 (2)' }
+        ]
       }
+    };
+
+    /* ═══════════════════════════════════════════════════════════════════
+       NORMALIZE — strips spaces and lowercases for fuzzy matching
+    ═══════════════════════════════════════════════════════════════════ */
+    function normalizeLoc(str) {
+      return str.toLowerCase().replace(/[\s\-_]/g, '');
     }
 
-    function enterOfflineState() {
-      if (isOffline) return;
-      isOffline = true;
-      showOfflineOverlay();
-      setNetworkDependentControlsDisabled(true);
-      /* Pause live GPS-driven recalculation/tracking UI, but keep watchPosition
-         registered so we resume instantly once back online; just gate the handler. */
+    /* Build a lookup map: normalized → canonical name */
+    const locationsList = [
+      'Current Location', 'Front Gate', 'Admission Office', 'Library', 'Principal Office', 'S F Office',
+      'Aided Office', 'Placement Office', 'Hostel Office', 'Food Court 1', 'Food Court 2', 'GRD Auditorium',
+      'Indoor Auditorium', 'A Block', 'B Block', 'C Block', 'D Block', 'E Block', 'F Block', 'G Block',
+      'Q Block', 'Maintainance Block', 'Alumni Block', 'Book Depot', 'Pothigai Hall', 'Sangamam Hall',
+      'Brahmam Hall', 'Kaveri Hall', 'Vaigai Hall', 'Bharathi Hostel', 'NRI Hostel', 'VOC Hostel', 'Back Gate'
+    ];
+
+    const normalizedLocationMap = new Map();
+    locationsList.forEach(loc => normalizedLocationMap.set(normalizeLoc(loc), loc));
+
+    /**
+     * Resolves a user-typed string to a canonical location name.
+     * Returns null if no match found.
+     * Priority: exact case-insensitive match → normalized (space-stripped) match.
+     */
+    function resolveLocationName(input) {
+      if (!input || !input.trim()) return null;
+      const trimmed = input.trim();
+      /* 1. Exact match (case-insensitive) */
+      const exact = locationsList.find(l => l.toLowerCase() === trimmed.toLowerCase());
+      if (exact) return exact;
+      /* 2. Normalized (space/punctuation stripped) match */
+      const normalized = normalizeLoc(trimmed);
+      if (normalizedLocationMap.has(normalized)) return normalizedLocationMap.get(normalized);
+      /* 3. Starts-with match on normalized form */
+      for (const [norm, canonical] of normalizedLocationMap) {
+        if (norm.startsWith(normalized) && normalized.length >= 3) return canonical;
+      }
+      return null;
     }
 
-    function exitOfflineState() {
-      if (!isOffline) return;
-      isOffline = false;
-      hideOfflineOverlay();
-      setNetworkDependentControlsDisabled(false);
-      showOnlineToast();
+    /* ═══════════════════════════════════════════════════════════════════
+       INVALID LOCATION MODAL
+    ═══════════════════════════════════════════════════════════════════ */
+    let _invalidLocCallback = null;
+    function showInvalidLocModal(fieldLabel, inputValue, callback) {
+      const field = document.getElementById('invalidLocField');
+      field.textContent = `"${inputValue}" in ${fieldLabel}`;
+      document.getElementById('invalidLocModal').classList.add('open');
+      _invalidLocCallback = callback || null;
+    }
+    function closeInvalidLocModal() {
+      document.getElementById('invalidLocModal').classList.remove('open');
+      if (_invalidLocCallback) { _invalidLocCallback(); _invalidLocCallback = null; }
     }
 
-    /* navigator.onLine only tells us the OS/browser thinks there is a network
-       link — it does not guarantee actual internet reachability. We confirm
-       with a tiny no-cors fetch before trusting an "online" signal. */
+    /* ═══════════════════════════════════════════════════════════════════
+       CONNECTIVITY MONITOR
+    ═══════════════════════════════════════════════════════════════════ */
+    let isOffline = false, connectivityCheckTimer = null, onlineToastTimer = null;
+    const CONNECTIVITY_CHECK_INTERVAL = 15000;
+    const CONNECTIVITY_PING_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    function isAppOffline() { return isOffline; }
+    function showOfflineOverlay() { const ov = document.getElementById('offlineOverlay'); if (!ov.classList.contains('open')) ov.classList.add('open'); }
+    function hideOfflineOverlay() { document.getElementById('offlineOverlay').classList.remove('open'); }
+    function showOnlineToast() { const t = document.getElementById('onlineToast'); t.classList.add('show'); clearTimeout(onlineToastTimer); onlineToastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+    function setNetworkDependentControlsDisabled(disabled) {
+      ['but1', 'but2', 'currentLocationBtn', 'fullscreenBtn', 'layerBtn', 'landmarkToggleBtn', 'ctrlToggleBtn', 'exploreBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = disabled; });
+      const fromBox = document.getElementById('fromBox'), toBox = document.getElementById('toBox'), curLocBtn = document.getElementById('curLocInlineBtn');
+      if (fromBox) fromBox.disabled = disabled; if (toBox) toBox.disabled = disabled;
+      if (curLocBtn) curLocBtn.style.pointerEvents = disabled ? 'none' : '';
+      if (disabled) { document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'); closeLayerPanel(); }
+    }
+    function enterOfflineState() { if (isOffline) return; isOffline = true; showOfflineOverlay(); setNetworkDependentControlsDisabled(true); }
+    function exitOfflineState() { if (!isOffline) return; isOffline = false; hideOfflineOverlay(); setNetworkDependentControlsDisabled(false); showOnlineToast(); }
     function verifyRealConnectivity(onResult) {
       if (!navigator.onLine) { onResult(false); return; }
-      const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), 5000) : null;
-      fetch(CONNECTIVITY_PING_URL + '?_=' + Date.now(), {
-        method: 'HEAD',
-        mode: 'no-cors',
-        cache: 'no-store',
-        signal: controller ? controller.signal : undefined
-      }).then(() => {
-        if (timeoutId) clearTimeout(timeoutId);
-        onResult(true);
-      }).catch(() => {
-        if (timeoutId) clearTimeout(timeoutId);
-        onResult(false);
-      });
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const tid = controller ? setTimeout(() => controller.abort(), 5000) : null;
+      fetch(CONNECTIVITY_PING_URL + '?_=' + Date.now(), { method: 'HEAD', mode: 'no-cors', cache: 'no-store', signal: controller?.signal })
+        .then(() => { if (tid) clearTimeout(tid); onResult(true); })
+        .catch(() => { if (tid) clearTimeout(tid); onResult(false); });
     }
-
-    function handleConnectivityChange() {
-      verifyRealConnectivity(reachable => {
-        if (reachable) exitOfflineState();
-        else enterOfflineState();
-      });
-    }
-
+    function handleConnectivityChange() { verifyRealConnectivity(r => r ? exitOfflineState() : enterOfflineState()); }
     function startConnectivityWatcher() {
       window.addEventListener('online', handleConnectivityChange);
       window.addEventListener('offline', () => enterOfflineState());
-      /* Initial check on load */
       handleConnectivityChange();
-      /* Periodic safety-net re-check (covers flaky Wi-Fi/no-signal cases
-         where the browser never fires online/offline events) */
       connectivityCheckTimer = setInterval(handleConnectivityChange, CONNECTIVITY_CHECK_INTERVAL);
     }
 
-    /* ═══════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        CAMPUS BOUNDARY
-       Polygon vertices (lat/lng) tracing the campus perimeter.
-       Point-in-polygon test uses ray-casting algorithm.
-       We also add a 30 m tolerance buffer via a bounding-box
-       pre-check for performance.
-    ═══════════════════════════════════════════════════════ */
-    const CAMPUS_POLYGON = [
-      [11.034820, 77.033845], [11.034749, 77.034258], [11.034391, 77.035535],
-      [11.034009, 77.036093], [11.033834, 77.036351], [11.033289, 77.036422],
-      [11.032278, 77.036498], [11.031834, 77.036534], [11.030725, 77.035295],
-      [11.030778, 77.033976], [11.031281, 77.033974], [11.031483, 77.033107],
-      [11.032002, 77.032709], [11.032397, 77.032700], [11.032534, 77.032396],
-      [11.033037, 77.032115], [11.033232, 77.032396], [11.033400, 77.033864],
-      [11.034820, 77.033845]
-    ];
-    /* Loose bounding box for fast pre-check */
-    const CAMPUS_BBOX = {
-      minLat: 11.030600, maxLat: 11.035000,
-      minLng: 77.031900, maxLng: 77.036700
-    };
-    /* Extra tolerance in degrees (~36 m) for boundary edge cases */
+    ═══════════════════════════════════════════════════════════════════ */
+    const CAMPUS_POLYGON = [[11.034820, 77.033845], [11.034749, 77.034258], [11.034391, 77.035535], [11.034009, 77.036093], [11.033834, 77.036351], [11.033289, 77.036422], [11.032278, 77.036498], [11.031834, 77.036534], [11.030725, 77.035295], [11.030778, 77.033976], [11.031281, 77.033974], [11.031483, 77.033107], [11.032002, 77.032709], [11.032397, 77.032700], [11.032534, 77.032396], [11.033037, 77.032115], [11.033232, 77.032396], [11.033400, 77.033864], [11.034820, 77.033845]];
+    const CAMPUS_BBOX = { minLat: 11.030600, maxLat: 11.035000, minLng: 77.031900, maxLng: 77.036700 };
     const CAMPUS_TOLERANCE_DEG = 0.00032;
+    function pointInPolygon(lat, lng, poly) { let inside = false, n = poly.length; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = poly[i][1], yi = poly[i][0], xj = poly[j][1], yj = poly[j][0], intersect = ((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi); if (intersect) inside = !inside; } return inside; }
+    function isWithinCampus(lat, lng) { if (lat < CAMPUS_BBOX.minLat - CAMPUS_TOLERANCE_DEG || lat > CAMPUS_BBOX.maxLat + CAMPUS_TOLERANCE_DEG || lng < CAMPUS_BBOX.minLng - CAMPUS_TOLERANCE_DEG || lng > CAMPUS_BBOX.maxLng + CAMPUS_TOLERANCE_DEG) return false; return pointInPolygon(lat, lng, CAMPUS_POLYGON); }
 
-    function pointInPolygon(lat, lng, poly) {
-      let inside = false;
-      const n = poly.length;
-      for (let i = 0, j = n - 1; i < n; j = i++) {
-        const xi = poly[i][1], yi = poly[i][0];
-        const xj = poly[j][1], yj = poly[j][0];
-        const intersect = ((yi > lat) !== (yj > lat)) &&
-          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-      }
-      return inside;
-    }
-
-    function isWithinCampus(lat, lng) {
-      /* Fast bounding-box pre-check with tolerance */
-      if (lat < CAMPUS_BBOX.minLat - CAMPUS_TOLERANCE_DEG ||
-        lat > CAMPUS_BBOX.maxLat + CAMPUS_TOLERANCE_DEG ||
-        lng < CAMPUS_BBOX.minLng - CAMPUS_TOLERANCE_DEG ||
-        lng > CAMPUS_BBOX.maxLng + CAMPUS_TOLERANCE_DEG) {
-        return false;
-      }
-      return pointInPolygon(lat, lng, CAMPUS_POLYGON);
-    }
-
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        UTILITIES
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     const isMobile = () => window.innerWidth <= 768;
     const expandNav = () => { if (!isMobile()) return; document.getElementById('mainNav').classList.remove('compact'); };
     const collapseNav = () => { if (!isMobile()) return; document.getElementById('mainNav').classList.add('compact'); };
 
-    /* ════════════════════════════════════════════════════════════════
-       NAV BUTTONS VISIBILITY
-    ════════════════════════════════════════════════════════════════ */
     let navButtonsHidden = false;
     function hideNavButtons() { document.getElementById('btnRow').classList.add('nav-hidden'); navButtonsHidden = true; }
     function showNavButtons() { document.getElementById('btnRow').classList.remove('nav-hidden'); navButtonsHidden = false; }
@@ -3048,239 +3703,85 @@
     function onToBoxClick() { if (isAppOffline()) return; if (navButtonsHidden) restoreSearchUI(); showList('toList'); expandNav(); }
     function restoreSearchUI() { showNavButtons(); }
 
-    /* ════════════════════════════════════════════════════════════════
-       CURRENT LOCATION INLINE BUTTON
-    ════════════════════════════════════════════════════════════════ */
     function setCurrentLocationInFrom(e) {
-      e.stopPropagation();
-      if (isAppOffline()) return;
-      const btn = document.getElementById('curLocInlineBtn');
-      const fromBox = document.getElementById('fromBox');
+      e.stopPropagation(); if (isAppOffline()) return;
+      const btn = document.getElementById('curLocInlineBtn'), fromBox = document.getElementById('fromBox');
       if (fromBox.value === 'Current Location') { fromBox.value = ''; btn.classList.remove('active'); return; }
-      fromBox.value = 'Current Location';
-      btn.classList.add('active');
+      fromBox.value = 'Current Location'; btn.classList.add('active');
       document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none');
       startGeolocation();
     }
 
-    /* ════════════════════════════════════════════════════════════════
-       CAMPUS MODAL
-    ════════════════════════════════════════════════════════════════ */
-    function showCampusModal() {
-      document.getElementById('campusModal').classList.add('open');
-    }
+    function showCampusModal() { document.getElementById('campusModal').classList.add('open'); }
     function closeCampusModal() {
       document.getElementById('campusModal').classList.remove('open');
-      /* Reset From box so user picks a manual location */
       const fromBox = document.getElementById('fromBox');
-      fromBox.value = '';
-      document.getElementById('curLocInlineBtn').classList.remove('active');
-      showNavButtons();
-      expandNav();
+      fromBox.value = ''; document.getElementById('curLocInlineBtn').classList.remove('active');
+      showNavButtons(); expandNav();
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        FULLSCREEN
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     let isFullscreen = false;
-    function enterFullscreen() {
-      isFullscreen = true; document.body.classList.add('fullscreen-map');
-      document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-compress"></i>';
-      document.getElementById('fullscreenBtn').title = 'Exit Fullscreen';
-      setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400);
-    }
-    function exitFullscreen() {
-      isFullscreen = false; document.body.classList.remove('fullscreen-map');
-      document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-expand"></i>';
-      document.getElementById('fullscreenBtn').title = 'Fullscreen Map';
-      setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400);
-    }
+    function enterFullscreen() { isFullscreen = true; document.body.classList.add('fullscreen-map'); document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-compress"></i>'; document.getElementById('fullscreenBtn').title = 'Exit Fullscreen'; setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400); }
+    function exitFullscreen() { isFullscreen = false; document.body.classList.remove('fullscreen-map'); document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-expand"></i>'; document.getElementById('fullscreenBtn').title = 'Fullscreen Map'; setTimeout(() => { if (campusMap) campusMap.invalidateSize(); }, 400); }
     function toggleFullscreen() { if (isAppOffline()) return; isFullscreen ? exitFullscreen() : enterFullscreen(); }
 
-    /* ════════════════════════════════════════════════════════════════
-       CONTROL CLUSTER COLLAPSE
-    ════════════════════════════════════════════════════════════════ */
     let ctrlCollapsed = false;
     function toggleCtrlGroup() {
       if (isAppOffline()) return;
       ctrlCollapsed = !ctrlCollapsed;
-      const grp = document.getElementById('mapCtrlGroup');
-      const btn = document.getElementById('ctrlToggleBtn');
-      if (ctrlCollapsed) {
-        grp.classList.add('ctrl-collapsed'); btn.classList.add('collapsed'); btn.title = 'Show controls';
-        closeLayerPanel();
-      } else {
-        grp.classList.remove('ctrl-collapsed'); btn.classList.remove('collapsed'); btn.title = 'Hide controls';
-      }
+      const grp = document.getElementById('mapCtrlGroup'), btn = document.getElementById('ctrlToggleBtn');
+      if (ctrlCollapsed) { grp.classList.add('ctrl-collapsed'); btn.classList.add('collapsed'); btn.title = 'Show controls'; closeLayerPanel(); }
+      else { grp.classList.remove('ctrl-collapsed'); btn.classList.remove('collapsed'); btn.title = 'Hide controls'; }
     }
 
-    /* ════════════════════════════════════════════════════════════════
-       LAYER CONFIGURATION
-    ════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       LAYER SWITCHER
+    ═══════════════════════════════════════════════════════════════════ */
     const tileLayers = {
       osm: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', options: { maxZoom: 20, attribution: '' } },
       satellite: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', options: { maxZoom: 20, attribution: '' } },
       light: { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', options: { maxZoom: 20, attribution: '', subdomains: 'abcd' } }
     };
-    let layerPanelOpen = false, currentLayerKey = 'osm', currentTileLayer = null;
-    let osmBuildingsInst = null, is3DActive = false, baseLayerBefore3D = 'osm', errorToastTimer = null;
-
-    function openLayerPanel() {
-      if (isAppOffline()) return;
-      layerPanelOpen = true;
-      document.getElementById('layerPanel').classList.add('open');
-      document.getElementById('layerBtn').classList.add('active');
-      positionLayerPanel();
-    }
-    function closeLayerPanel() {
-      layerPanelOpen = false;
-      document.getElementById('layerPanel').classList.remove('open');
-      if (!is3DActive) document.getElementById('layerBtn').classList.remove('active');
-    }
+    let layerPanelOpen = false, currentLayerKey = 'osm', currentTileLayer = null, osmBuildingsInst = null, is3DActive = false, baseLayerBefore3D = 'osm', errorToastTimer = null;
+    function openLayerPanel() { if (isAppOffline()) return; layerPanelOpen = true; document.getElementById('layerPanel').classList.add('open'); document.getElementById('layerBtn').classList.add('active'); positionLayerPanel(); }
+    function closeLayerPanel() { layerPanelOpen = false; document.getElementById('layerPanel').classList.remove('open'); if (!is3DActive) document.getElementById('layerBtn').classList.remove('active'); }
     function toggleLayerPanel() { if (isAppOffline()) return; layerPanelOpen ? closeLayerPanel() : openLayerPanel(); }
-    function positionLayerPanel() {
-      const panel = document.getElementById('layerPanel');
-      const btn = document.getElementById('layerBtn');
-      const mapSection = document.getElementById('mapSection');
-      const mapRect = mapSection.getBoundingClientRect();
-      const btnRect = btn.getBoundingClientRect();
-      const panelH = panel.offsetHeight || 220;
-      let top = (btnRect.top + btnRect.height / 2) - panelH / 2;
-      top = Math.max(mapRect.top + 8, Math.min(mapRect.bottom - panelH - 8, top));
-      panel.style.bottom = 'auto';
-      panel.style.top = (top - mapRect.top) + 'px';
-    }
-    function switchRasterLayer(key) {
-      if (!campusMap || key === currentLayerKey) return;
-      if (currentTileLayer) { campusMap.removeLayer(currentTileLayer); currentTileLayer = null; }
-      const def = tileLayers[key];
-      currentTileLayer = L.tileLayer(def.url, def.options).addTo(campusMap);
-      currentTileLayer.bringToBack();
-      currentLayerKey = key;
-    }
-    function show3DError(msg) {
-      const t = document.getElementById('toast3DError');
-      if (msg) t.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>${msg}`;
-      t.classList.add('visible');
-      clearTimeout(errorToastTimer);
-      errorToastTimer = setTimeout(() => t.classList.remove('visible'), 5000);
-    }
-    function enable3DLayer() {
-      if (!campusMap) return;
-      if (isAppOffline()) { show3DError('No internet connection. Try again once online.'); updateLayerOptionUI('osm'); return; }
-      if (typeof OSMBuildings === 'undefined' || window._osmBuildingsLoadFailed) {
-        show3DError('3D Buildings unavailable. Check network connection.');
-        updateLayerOptionUI('osm'); return;
-      }
-      baseLayerBefore3D = currentLayerKey;
-      if (currentLayerKey !== 'osm') switchRasterLayer('osm');
-      destroyOSMBuildings();
-      try {
-        osmBuildingsInst = new OSMBuildings(campusMap);
-        osmBuildingsInst.set({ color: 'rgba(108,92,231,0.80)', wallColor: 'rgba(74,63,200,0.75)', roofColor: 'rgba(162,155,254,0.88)', shadows: false });
-        osmBuildingsInst.load('https://data.osmbuildings.org/0.2/anonymous/tile/{zoom}/{x}/{y}.json');
-        is3DActive = true;
-        if (campusMap.getZoom() < 17) campusMap.setView([11.033400, 77.033864], 17);
-        document.getElementById('badge3D').classList.add('visible');
-        document.getElementById('layerBtn').classList.add('layer-3d-active');
-        document.getElementById('layerBtn').classList.remove('active');
-      } catch (err) {
-        destroyOSMBuildings();
-        show3DError('3D Buildings failed to initialise. Reverting to Standard.');
-        switchRasterLayer('osm'); updateLayerOptionUI('osm');
-      }
-    }
-    function destroyOSMBuildings() {
-      if (!osmBuildingsInst) return;
-      try {
-        if (typeof osmBuildingsInst.remove === 'function') osmBuildingsInst.remove();
-        else if (typeof osmBuildingsInst.destroy === 'function') osmBuildingsInst.destroy();
-        else {
-          const container = campusMap.getContainer();
-          container.querySelectorAll('canvas,[class*="osmb"]').forEach(el => {
-            if (el.tagName === 'CANVAS' || (el.className && el.className.toString().toLowerCase().includes('osmb'))) el.remove();
-          });
-        }
-      } catch (e) {
-        try { campusMap.getContainer().querySelectorAll('canvas').forEach(c => c.remove()); } catch (_) { }
-      }
-      osmBuildingsInst = null; is3DActive = false;
-      document.getElementById('badge3D').classList.remove('visible');
-      document.getElementById('layerBtn').classList.remove('layer-3d-active');
-    }
-    function switchLayer(key) {
-      if (isAppOffline()) { closeLayerPanel(); return; }
-      if (!campusMap) { closeLayerPanel(); return; }
-      if (key === '3d') {
-        if (is3DActive) { setTimeout(closeLayerPanel, 250); return; }
-        enable3DLayer(); updateLayerOptionUI('3d'); setTimeout(closeLayerPanel, 250); return;
-      }
-      if (is3DActive) destroyOSMBuildings();
-      switchRasterLayer(key); updateLayerOptionUI(key); setTimeout(closeLayerPanel, 250);
-    }
-    function updateLayerOptionUI(activeKey) {
-      document.querySelectorAll('.layer-option').forEach(opt => opt.classList.toggle('selected', opt.dataset.layer === activeKey));
-    }
+    function positionLayerPanel() { const panel = document.getElementById('layerPanel'), btn = document.getElementById('layerBtn'), mapSection = document.getElementById('mapSection'), mapRect = mapSection.getBoundingClientRect(), btnRect = btn.getBoundingClientRect(), panelH = panel.offsetHeight || 220; let top = (btnRect.top + btnRect.height / 2) - panelH / 2; top = Math.max(mapRect.top + 8, Math.min(mapRect.bottom - panelH - 8, top)); panel.style.bottom = 'auto'; panel.style.top = (top - mapRect.top) + 'px'; }
+    function switchRasterLayer(key) { if (!campusMap || key === currentLayerKey) return; if (currentTileLayer) { campusMap.removeLayer(currentTileLayer); currentTileLayer = null; } const def = tileLayers[key]; currentTileLayer = L.tileLayer(def.url, def.options).addTo(campusMap); currentTileLayer.bringToBack(); currentLayerKey = key; }
+    function show3DError(msg) { const t = document.getElementById('toast3DError'); if (msg) t.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>${msg}`; t.classList.add('visible'); clearTimeout(errorToastTimer); errorToastTimer = setTimeout(() => t.classList.remove('visible'), 5000); }
+    function enable3DLayer() { if (!campusMap) return; if (isAppOffline()) { show3DError('No internet connection. Try again once online.'); updateLayerOptionUI('osm'); return; } if (typeof OSMBuildings === 'undefined' || window._osmBuildingsLoadFailed) { show3DError('3D Buildings unavailable. Check network connection.'); updateLayerOptionUI('osm'); return; } baseLayerBefore3D = currentLayerKey; if (currentLayerKey !== 'osm') switchRasterLayer('osm'); destroyOSMBuildings(); try { osmBuildingsInst = new OSMBuildings(campusMap); osmBuildingsInst.set({ color: 'rgba(108,92,231,0.80)', wallColor: 'rgba(74,63,200,0.75)', roofColor: 'rgba(162,155,254,0.88)', shadows: false }); osmBuildingsInst.load('https://data.osmbuildings.org/0.2/anonymous/tile/{zoom}/{x}/{y}.json'); is3DActive = true; if (campusMap.getZoom() < 17) campusMap.setView([11.033400, 77.033864], 17); document.getElementById('badge3D').classList.add('visible'); document.getElementById('layerBtn').classList.add('layer-3d-active'); document.getElementById('layerBtn').classList.remove('active'); } catch (err) { destroyOSMBuildings(); show3DError('3D Buildings failed to initialise. Reverting to Standard.'); switchRasterLayer('osm'); updateLayerOptionUI('osm'); } }
+    function destroyOSMBuildings() { if (!osmBuildingsInst) return; try { if (typeof osmBuildingsInst.remove === 'function') osmBuildingsInst.remove(); else if (typeof osmBuildingsInst.destroy === 'function') osmBuildingsInst.destroy(); else { const c = campusMap.getContainer(); c.querySelectorAll('canvas,[class*="osmb"]').forEach(el => { if (el.tagName === 'CANVAS' || (el.className && el.className.toString().toLowerCase().includes('osmb'))) el.remove(); }); } } catch (e) { try { campusMap.getContainer().querySelectorAll('canvas').forEach(c => c.remove()); } catch (_) { } } osmBuildingsInst = null; is3DActive = false; document.getElementById('badge3D').classList.remove('visible'); document.getElementById('layerBtn').classList.remove('layer-3d-active'); }
+    function switchLayer(key) { if (isAppOffline()) { closeLayerPanel(); return; } if (!campusMap) { closeLayerPanel(); return; } if (key === '3d') { if (is3DActive) { setTimeout(closeLayerPanel, 250); return; } enable3DLayer(); updateLayerOptionUI('3d'); setTimeout(closeLayerPanel, 250); return; } if (is3DActive) destroyOSMBuildings(); switchRasterLayer(key); updateLayerOptionUI(key); setTimeout(closeLayerPanel, 250); }
+    function updateLayerOptionUI(activeKey) { document.querySelectorAll('.layer-option').forEach(opt => opt.classList.toggle('selected', opt.dataset.layer === activeKey)); }
     function initLayerSwitcher() {
       document.getElementById('layerBtn').addEventListener('click', e => { e.stopPropagation(); toggleLayerPanel(); });
       document.getElementById('layerPanelClose').addEventListener('click', e => { e.stopPropagation(); closeLayerPanel(); });
       document.querySelectorAll('.layer-option').forEach(opt => opt.addEventListener('click', () => switchLayer(opt.dataset.layer)));
-      document.addEventListener('click', e => {
-        if (layerPanelOpen && !document.getElementById('layerPanel').contains(e.target) && !document.getElementById('layerBtn').contains(e.target)) closeLayerPanel();
-      });
+      document.addEventListener('click', e => { if (layerPanelOpen && !document.getElementById('layerPanel').contains(e.target) && !document.getElementById('layerBtn').contains(e.target)) closeLayerPanel(); });
       window.addEventListener('resize', () => { if (layerPanelOpen) positionLayerPanel(); });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        LIVE NAV STATUS BAR
-    ════════════════════════════════════════════════════════════════ */
-    function showLiveNavBar(remainingDist, remainingTime) {
-      const bar = document.getElementById('liveNavBar');
-      document.getElementById('liveNavStats').textContent =
-        remainingDist !== undefined
-          ? `  ·  ${fmtDist(remainingDist)}  ·  ${fmtTime(remainingDist)}`
-          : '';
-      bar.classList.add('visible');
-    }
-    function hideLiveNavBar() {
-      document.getElementById('liveNavBar').classList.remove('visible');
-    }
+    ═══════════════════════════════════════════════════════════════════ */
+    function showLiveNavBar(remainingDist) { const bar = document.getElementById('liveNavBar'); document.getElementById('liveNavStats').textContent = remainingDist !== undefined ? `  ·  ${fmtDist(remainingDist)}  ·  ${fmtTime(remainingDist)}` : ''; bar.classList.add('visible'); }
+    function hideLiveNavBar() { document.getElementById('liveNavBar').classList.remove('visible'); }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        BOTTOM SHEET
-    ════════════════════════════════════════════════════════════════ */
-    const SHEET_COLLAPSED_H = 120;
-    const SHEET_EXPANDED_RATIO = 0.52;
+    ═══════════════════════════════════════════════════════════════════ */
+    const SHEET_COLLAPSED_H = 120, SHEET_EXPANDED_RATIO = 0.52;
     let sheetState = 'hidden', _dragStartY = 0, _dragStartH = 0, _isDragging = false;
-
     function sheetHeight() { return sheetState === 'expanded' ? Math.round(window.innerHeight * SHEET_EXPANDED_RATIO) : SHEET_COLLAPSED_H; }
-    function applySheetHeight(h, animate = true) {
-      const el = document.getElementById('bottomSheet');
-      el.style.transition = animate ? 'height 0.38s cubic-bezier(0.4,0,0.2,1)' : 'none';
-      el.style.height = h + 'px';
-      document.getElementById('mapCtrlGroup').style.bottom = (h + 32) + 'px';
-    }
-    function showSheet(state = 'collapsed') {
-      if (!isMobile()) return;
-      const el = document.getElementById('bottomSheet');
-      el.style.display = 'flex'; el.style.flexDirection = 'column';
-      sheetState = state;
-      const panel = document.getElementById('sheetExpandedPanel');
-      const hint = document.getElementById('expandHint');
-      if (state === 'expanded') { panel.style.display = 'flex'; hint.innerHTML = '<i class="fas fa-chevron-down"></i> Collapse'; }
-      else { panel.style.display = 'none'; hint.innerHTML = '<i class="fas fa-chevron-up"></i> Routes'; }
-      requestAnimationFrame(() => applySheetHeight(sheetHeight()));
-    }
-    function hideSheet() {
-      document.getElementById('bottomSheet').style.display = 'none';
-      sheetState = 'hidden';
-      document.getElementById('mapCtrlGroup').style.bottom = '24px';
-    }
+    function applySheetHeight(h, animate = true) { const el = document.getElementById('bottomSheet'); el.style.transition = animate ? 'height 0.38s cubic-bezier(0.4,0,0.2,1)' : 'none'; el.style.height = h + 'px'; document.getElementById('mapCtrlGroup').style.bottom = (h + 32) + 'px'; }
+    function showSheet(state = 'collapsed') { if (!isMobile()) return; const el = document.getElementById('bottomSheet'); el.style.display = 'flex'; el.style.flexDirection = 'column'; sheetState = state; const panel = document.getElementById('sheetExpandedPanel'), hint = document.getElementById('expandHint'); if (state === 'expanded') { panel.style.display = 'flex'; hint.innerHTML = '<i class="fas fa-chevron-down"></i> Collapse'; } else { panel.style.display = 'none'; hint.innerHTML = '<i class="fas fa-chevron-up"></i> Routes'; } requestAnimationFrame(() => applySheetHeight(sheetHeight())); }
+    function hideSheet() { document.getElementById('bottomSheet').style.display = 'none'; sheetState = 'hidden'; document.getElementById('mapCtrlGroup').style.bottom = '24px'; }
     function expandSheet() { if (isAppOffline()) return; sheetState === 'expanded' ? showSheet('collapsed') : showSheet('expanded'); }
-
     function setupSheetDrag() {
-      const handle = document.getElementById('sheetHandle');
-      const el = document.getElementById('bottomSheet');
+      const handle = document.getElementById('sheetHandle'), el = document.getElementById('bottomSheet');
       handle.addEventListener('touchstart', e => { if (isAppOffline()) return; _isDragging = true; _dragStartY = e.changedTouches[0].clientY; _dragStartH = el.getBoundingClientRect().height; el.style.transition = 'none'; }, { passive: true });
       window.addEventListener('touchmove', e => { if (!_isDragging) return; const dy = _dragStartY - e.changedTouches[0].clientY; applySheetHeight(Math.max(70, Math.min(window.innerHeight * 0.85, _dragStartH + dy)), false); }, { passive: true });
       window.addEventListener('touchend', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); }, { passive: true });
@@ -3289,189 +3790,62 @@
       window.addEventListener('mouseup', () => { if (!_isDragging) return; _isDragging = false; showSheet(el.getBoundingClientRect().height > window.innerHeight * 0.22 ? 'expanded' : 'collapsed'); });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        FORMAT HELPERS
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function fmtDist(m) { return m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m'; }
     function fmtTime(m) { const mins = Math.ceil(m / 1.4 / 60); return mins < 1 ? '<1 min' : mins + ' min'; }
 
-    /* ════════════════════════════════════════════════════════════════
-       REMAINING DISTANCE CALCULATION
-       Computes the remaining route distance from the user's current
-       position to the destination along the active path.
-    ════════════════════════════════════════════════════════════════ */
-    function calcRemainingDistance(userPos, pathIndices) {
-      if (!pathIndices || pathIndices.length < 2) return 0;
-      /* Find the closest segment on the remaining path */
-      let closestSegIdx = 0, closestDist = Infinity, closestFrac = 0;
-      for (let i = 0; i < pathIndices.length - 1; i++) {
-        const a = graph.nodes[pathIndices[i]];
-        const b = graph.nodes[pathIndices[i + 1]];
-        const np = nearestPointOnSegment(userPos, a, b);
-        const d = hav(userPos, np);
-        if (d < closestDist) {
-          closestDist = d;
-          closestSegIdx = i;
-          /* fraction along segment */
-          const segLen = hav(a, b);
-          closestFrac = segLen > 0 ? hav(a, np) / segLen : 0;
-        }
-      }
-      /* Sum distance: partial segment + remaining full segments */
-      let rem = 0;
-      const a = graph.nodes[pathIndices[closestSegIdx]];
-      const b = graph.nodes[pathIndices[closestSegIdx + 1]];
-      rem += hav(a, b) * (1 - closestFrac);
-      for (let i = closestSegIdx + 1; i < pathIndices.length - 1; i++) {
-        rem += hav(graph.nodes[pathIndices[i]], graph.nodes[pathIndices[i + 1]]);
-      }
-      return rem;
-    }
+    /* ═══════════════════════════════════════════════════════════════════
+       REMAINING DISTANCE
+    ═══════════════════════════════════════════════════════════════════ */
+    function calcRemainingDistance(userPos, pathIndices) { if (!pathIndices || pathIndices.length < 2) return 0; let closestSegIdx = 0, closestDist = Infinity, closestFrac = 0; for (let i = 0; i < pathIndices.length - 1; i++) { const a = graph.nodes[pathIndices[i]], b = graph.nodes[pathIndices[i + 1]], np = nearestPointOnSegment(userPos, a, b), d = hav(userPos, np); if (d < closestDist) { closestDist = d; closestSegIdx = i; const segLen = hav(a, b); closestFrac = segLen > 0 ? hav(a, np) / segLen : 0; } } let rem = 0; const a = graph.nodes[pathIndices[closestSegIdx]], b = graph.nodes[pathIndices[closestSegIdx + 1]]; rem += hav(a, b) * (1 - closestFrac); for (let i = closestSegIdx + 1; i < pathIndices.length - 1; i++)rem += hav(graph.nodes[pathIndices[i]], graph.nodes[pathIndices[i + 1]]); return rem; }
 
-    /* ════════════════════════════════════════════════════════════════
-       UPDATE LIVE NAVIGATION UI (called on each GPS tick)
-    ════════════════════════════════════════════════════════════════ */
     function updateLiveNavUI() {
       if (!isNavigating || !userLatLng || !currentPathIndices.length) return;
-      const userPos = { lat: userLatLng[0], lng: userLatLng[1] };
-      const remDist = calcRemainingDistance(userPos, currentPathIndices);
-      const remTimeStr = fmtTime(remDist);
-      const remDistStr = fmtDist(remDist);
-
-      /* Mobile sheet compact row */
-      if (isMobile()) {
-        document.getElementById('sheetTime').textContent = remTimeStr;
-        document.getElementById('sheetDist').textContent = remDistStr;
-        /* Live indicator row */
-        document.getElementById('liveRemainingText').textContent =
-          `Live · ${remDistStr} remaining · ${remTimeStr}`;
-        document.getElementById('liveRemainingRow').classList.add('show');
-      }
-      /* Desktop pill */
-      else {
-        const pill = document.querySelector('#desktopRouteStack .route-pill.active');
-        if (pill) {
-          const vals = pill.querySelectorAll('.pill-val');
-          if (vals[0]) vals[0].textContent = remDistStr;
-          if (vals[1]) vals[1].textContent = remTimeStr;
-        }
-      }
-      /* Map overlay bar */
+      const userPos = { lat: userLatLng[0], lng: userLatLng[1] }, remDist = calcRemainingDistance(userPos, currentPathIndices), remTimeStr = fmtTime(remDist), remDistStr = fmtDist(remDist);
+      if (isMobile()) { document.getElementById('sheetTime').textContent = remTimeStr; document.getElementById('sheetDist').textContent = remDistStr; document.getElementById('liveRemainingText').textContent = `Live · ${remDistStr} remaining · ${remTimeStr}`; document.getElementById('liveRemainingRow').classList.add('show'); }
+      else { const pill = document.querySelector('#desktopRouteStack .route-pill.active'); if (pill) { const vals = pill.querySelectorAll('.pill-val'); if (vals[0]) vals[0].textContent = remDistStr; if (vals[1]) vals[1].textContent = remTimeStr; } }
       showLiveNavBar(remDist);
     }
 
-    /* ════════════════════════════════════════════════════════════════
-       RENDER ROUTE INFO PANELS  (live nav = single route only)
-    ════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       ROUTE INFO PANELS
+    ═══════════════════════════════════════════════════════════════════ */
     function renderMobileSheet(results, activeIdx, destName, liveMode) {
       if (!isMobile()) return;
-      const sheetEl = document.getElementById('bottomSheet');
-
-      if (liveMode) {
-        /* Live nav: single route, no expand/route list */
-        const res = results[0];
-        document.getElementById('sheetDestName').textContent = destName || '–';
-        document.getElementById('sheetTime').textContent = fmtTime(res.distance);
-        document.getElementById('sheetDist').textContent = fmtDist(res.distance);
-        document.getElementById('expandHint').style.display = 'none';
-        document.getElementById('liveRemainingRow').classList.add('show');
-        document.getElementById('liveRemainingText').textContent =
-          `Live · ${fmtDist(res.distance)} remaining · ${fmtTime(res.distance)}`;
-        showSheet('collapsed');
-        return;
-      }
-
-      /* Normal multi-route mode */
-      document.getElementById('expandHint').style.display = '';
-      document.getElementById('liveRemainingRow').classList.remove('show');
-      const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance);
-      const active = sorted.find(r => r.origIdx === activeIdx) || sorted[0];
-      document.getElementById('sheetDestName').textContent = destName || '–';
-      document.getElementById('sheetTime').textContent = fmtTime(active.distance);
-      document.getElementById('sheetDist').textContent = fmtDist(active.distance);
-      document.getElementById('expRouteCount').textContent = results.length + (results.length > 1 ? ' routes' : ' route');
+      if (liveMode) { const res = results[0]; document.getElementById('sheetDestName').textContent = destName || '–'; document.getElementById('sheetTime').textContent = fmtTime(res.distance); document.getElementById('sheetDist').textContent = fmtDist(res.distance); document.getElementById('expandHint').style.display = 'none'; document.getElementById('liveRemainingRow').classList.add('show'); document.getElementById('liveRemainingText').textContent = `Live · ${fmtDist(res.distance)} remaining · ${fmtTime(res.distance)}`; showSheet('collapsed'); return; }
+      document.getElementById('expandHint').style.display = ''; document.getElementById('liveRemainingRow').classList.remove('show');
+      const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance), active = sorted.find(r => r.origIdx === activeIdx) || sorted[0];
+      document.getElementById('sheetDestName').textContent = destName || '–'; document.getElementById('sheetTime').textContent = fmtTime(active.distance); document.getElementById('sheetDist').textContent = fmtDist(active.distance); document.getElementById('expRouteCount').textContent = results.length + (results.length > 1 ? ' routes' : ' route');
       const container = document.getElementById('sheetRouteCards'); container.innerHTML = '';
       sorted.forEach((res, si) => {
-        const isActive = res.origIdx === activeIdx;
-        const card = document.createElement('div'); card.className = 'route-card' + (isActive ? ' active' : '');
-        const lbl = si === 0 ? '⚡ Shortest' : 'Route ' + (si + 1);
-        card.innerHTML = `<div class="rc-top"><span class="rc-label ${si === 0 ? 'best' : ''}">${lbl}</span>${isActive ? '<span class="rc-active-badge">● Active</span>' : ''}</div><div class="rc-stats"><div class="rc-stat"><div class="rc-icon time"><i class="fas fa-clock"></i></div><div class="rc-text"><span class="rc-val">${fmtTime(res.distance)}</span><span class="rc-unit">Est. Time</span></div></div><div class="rc-divider"></div><div class="rc-stat"><div class="rc-icon dist"><i class="fas fa-road"></i></div><div class="rc-text"><span class="rc-val">${fmtDist(res.distance)}</span><span class="rc-unit">Distance</span></div></div></div>`;
-        card.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); renderMobileSheet(results, res.origIdx, destName, false); showSheet('collapsed'); });
-        container.appendChild(card);
+        const isActive = res.origIdx === activeIdx, card = document.createElement('div'); card.className = 'route-card' + (isActive ? ' active' : ''); const lbl = si === 0 ? '⚡ Shortest' : 'Route ' + (si + 1); card.innerHTML = `<div class="rc-top"><span class="rc-label ${si === 0 ? 'best' : ''}">${lbl}</span>${isActive ? '<span class="rc-active-badge">● Active</span>' : ''}</div><div class="rc-stats"><div class="rc-stat"><div class="rc-icon time"><i class="fas fa-clock"></i></div><div class="rc-text"><span class="rc-val">${fmtTime(res.distance)}</span><span class="rc-unit">Est. Time</span></div></div><div class="rc-divider"></div><div class="rc-stat"><div class="rc-icon dist"><i class="fas fa-road"></i></div><div class="rc-text"><span class="rc-val">${fmtDist(res.distance)}</span><span class="rc-unit">Distance</span></div></div></div>`;
+        card.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); renderMobileSheet(results, res.origIdx, destName, false); showSheet('collapsed'); }); container.appendChild(card);
       });
       showSheet('collapsed');
     }
-
     function renderDesktopRouteStack(results, activeIdx, liveMode) {
-      const stack = document.getElementById('desktopRouteStack'); if (!stack) return;
-      stack.innerHTML = '';
-
-      if (liveMode) {
-        /* Single pill for live mode with live badge */
-        const res = results[0];
-        const box = document.createElement('div'); box.className = 'route-pill active';
-        box.innerHTML = `
-        <div class="pill-header">
-          <span class="pill-label best">Shortest Route</span>
-          <span class="pill-badge live">⬤ Live</span>
-        </div>
-        <div class="pill-stats">
-          <div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Remaining</span></div>
-          <div class="pill-divider"></div>
-          <div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div>
-        </div>
-        <div class="live-nav-indicator"><span class="live-dot"></span> GPS tracking active</div>`;
-        stack.appendChild(box);
-        return;
-      }
-
-      /* Normal multi-route mode */
+      const stack = document.getElementById('desktopRouteStack'); if (!stack) return; stack.innerHTML = '';
+      if (liveMode) { const res = results[0], box = document.createElement('div'); box.className = 'route-pill active'; box.innerHTML = `<div class="pill-header"><span class="pill-label best">Shortest Route</span><span class="pill-badge live">⬤ Live</span></div><div class="pill-stats"><div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Remaining</span></div><div class="pill-divider"></div><div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div></div><div class="live-nav-indicator"><span class="live-dot"></span> GPS tracking active</div>`; stack.appendChild(box); return; }
       const sorted = results.map((r, i) => ({ ...r, origIdx: i })).sort((a, b) => a.distance - b.distance);
-      sorted.forEach((res, si) => {
-        const isActive = res.origIdx === activeIdx;
-        const box = document.createElement('div'); box.className = 'route-pill' + (isActive ? ' active' : '');
-        const lbl = si === 0 ? 'Shortest Route' : 'Route ' + (si + 1);
-        const badge = isActive ? '<span class="pill-badge active">● Active</span>' : '<span class="pill-badge">View</span>';
-        box.innerHTML = `<div class="pill-header"><span class="pill-label ${si === 0 ? 'best' : ''}">${lbl}</span>${badge}</div><div class="pill-stats"><div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Distance</span></div><div class="pill-divider"></div><div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div></div>`;
-        box.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); });
-        stack.appendChild(box);
-      });
+      sorted.forEach((res, si) => { const isActive = res.origIdx === activeIdx, box = document.createElement('div'); box.className = 'route-pill' + (isActive ? ' active' : ''); const lbl = si === 0 ? 'Shortest Route' : 'Route ' + (si + 1), badge = isActive ? '<span class="pill-badge active">● Active</span>' : '<span class="pill-badge">View</span>'; box.innerHTML = `<div class="pill-header"><span class="pill-label ${si === 0 ? 'best' : ''}">${lbl}</span>${badge}</div><div class="pill-stats"><div class="pill-stat"><span class="pill-val">${fmtDist(res.distance)}</span><span class="pill-unit">Distance</span></div><div class="pill-divider"></div><div class="pill-stat"><span class="pill-val">${fmtTime(res.distance)}</span><span class="pill-unit">Est. Walk</span></div></div>`; box.addEventListener('click', () => { if (isAppOffline()) return; renderSelectedRoute(res.origIdx); }); stack.appendChild(box); });
     }
+    function clearRouteInfoPanels() { const stack = document.getElementById('desktopRouteStack'); if (stack) stack.innerHTML = ''; hideSheet(); document.getElementById('arrivedToast').classList.remove('show'); document.getElementById('desktopArrived').classList.remove('show'); document.getElementById('liveRemainingRow').classList.remove('show'); hideLiveNavBar(); hasArrived = false; }
 
-    function clearRouteInfoPanels() {
-      const stack = document.getElementById('desktopRouteStack'); if (stack) stack.innerHTML = '';
-      hideSheet();
-      document.getElementById('arrivedToast').classList.remove('show');
-      document.getElementById('desktopArrived').classList.remove('show');
-      document.getElementById('liveRemainingRow').classList.remove('show');
-      hideLiveNavBar();
-      hasArrived = false;
-    }
-
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        ARRIVED
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function showArrivedNotification(destName) {
-      if (hasArrived) return; hasArrived = true; isNavigating = false; stopArrowAnimation();
-      hideLiveNavBar();
-      document.getElementById('liveRemainingRow').classList.remove('show');
+      if (hasArrived) return; hasArrived = true; isNavigating = false; stopArrowAnimation(); hideLiveNavBar(); document.getElementById('liveRemainingRow').classList.remove('show');
       const sub = destName ? `You have arrived at ${destName}.` : 'You have arrived.';
-      if (isMobile()) {
-        hideSheet();
-        const toast = document.getElementById('arrivedToast');
-        document.getElementById('toastSub').textContent = sub;
-        toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
-      } else {
-        document.getElementById('desktopRouteStack').innerHTML = '';
-        document.getElementById('desktopArrivedSub').textContent = sub;
-        const box = document.getElementById('desktopArrived');
-        box.classList.remove('show'); void box.offsetWidth; box.classList.add('show');
-      }
+      if (isMobile()) { hideSheet(); const toast = document.getElementById('arrivedToast'); document.getElementById('toastSub').textContent = sub; toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show'); }
+      else { document.getElementById('desktopRouteStack').innerHTML = ''; document.getElementById('desktopArrivedSub').textContent = sub; const box = document.getElementById('desktopArrived'); box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); }
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        MAP GLOBALS
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     let campusMap, userLocationMarker, accuracyCircle, userWatchId = null, userLatLng = null;
     let startMarker = null, endMarker = null, routeLayerGroup = null, landmarkMarkersLayer = null;
     let landmarksVisible = true, animationFrameId = null;
@@ -3480,37 +3854,34 @@
     let isNavigating = false, currentDestination = null, fullRoutePath = [], currentPathIndices = [];
     let lastUpdateTime = 0;
     const UPDATE_THRESHOLD = 2000, PROXIMITY_THRESHOLD = 15, DEVIATION_THRESHOLD = 25, ARRIVED_THRESHOLD = 20;
-    let hasArrived = false;
-    let liveNavMode = false; /* true = current location mode, single-route only */
+    let hasArrived = false, liveNavMode = false;
     let graph = { nodes: [], edges: [] }, nodeIndex = new Map(), places = [];
     let lastResults, activeRouteIndex = 0;
     const KROUTES = 5;
+    let currentSidebarLocationName = '';
+    /* Active carousel per-menu state */
+    let activeCarouselImages = [], activeCarouselIdx = 0;
 
-    /* ════════════════════════════════════════════════════════════════
-       SIDE MENU STATE
-    ════════════════════════════════════════════════════════════════ */
-    let currentSidebarLocationName = 'E Block';
-
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        DATA
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     const landmarks = [
       { id: "front", name: "Front Gate", lat: 11.034700, lng: 77.033850 }, { id: "admiss", name: "Admission Office", lat: 11.032585, lng: 77.033888 },
       { id: "lib", name: "Library", lat: 11.033664, lng: 77.033435 }, { id: "prin", name: "Principal Office", lat: 11.033269, lng: 77.033861 },
       { id: "sf", name: "S F Office", lat: 11.033111, lng: 77.033410 }, { id: "aided", name: "Aided Office", lat: 11.033277, lng: 77.034183 },
-      { id: "hostel", name: "Hostel Office", lat: 11.032646, lng: 77.035309 }, { id: "can1", name: "Food Court 1", lat: 11.033695, lng: 77.034336 },
-      { id: "can2", name: "Food Court 2", lat: 11.032013, lng: 77.032709 }, { id: "grd", name: "GRD Auditorium", lat: 11.032415, lng: 77.033340 },
-      { id: "indoor", name: "Indoor Auditorium", lat: 11.033714, lng: 77.035304 }, { id: "ab", name: "A Block", lat: 11.033230, lng: 77.032509 },
-      { id: "bb", name: "B Block", lat: 11.033238, lng: 77.033060 }, { id: "cb", name: "C Block", lat: 11.032585, lng: 77.033888 },
-      { id: "db", name: "D Block", lat: 11.033280, lng: 77.034520 }, { id: "eb", name: "E Block", lat: 11.032854, lng: 77.034351 },
-      { id: "fb", name: "F Block", lat: 11.032585, lng: 77.033888 }, { id: "gb", name: "G Block", lat: 11.032609, lng: 77.034594 },
-      { id: "qb", name: "Q Block", lat: 11.034020, lng: 77.034499 }, { id: "book", name: "Book Depot", lat: 11.033405, lng: 77.033032 },
-      { id: "pothigai", name: "Pothigai Hall", lat: 11.033372, lng: 77.033410 }, { id: "Brahmam", name: "Brahmam Hall", lat: 11.034183, lng: 77.033856 },
-      { id: "Sangamam", name: "Sangamam Hall", lat: 11.032886, lng: 77.034344 }, { id: "bharathi", name: "Bharathi Hostel", lat: 11.032652, lng: 77.035604 },
-      { id: "voc", name: "VOC Hostel", lat: 11.033490, lng: 77.035535 }, { id: "nri", name: "NRI Hostel", lat: 11.032658, lng: 77.035785 },
-      { id: "main", name: "Maintainance Block", lat: 11.033711, lng: 77.035527 }, { id: "alu", name: "Alumni Block", lat: 11.032002, lng: 77.033445 },
-      { id: "kaveri", name: "Kaveri Hall", lat: 11.034020, lng: 77.034499 }, { id: "vaigai", name: "Vaigai Hall", lat: 11.034020, lng: 77.034499 },
-      { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534 }
+      { id: "hostel", name: "Hostel Office", lat: 11.032646, lng: 77.035309 }, { id: "pla", name: "Placement Office", lat: 11.032886, lng: 77.034344 },
+      { id: "can1", name: "Food Court 1", lat: 11.033695, lng: 77.034336 }, { id: "can2", name: "Food Court 2", lat: 11.032013, lng: 77.032709 },
+      { id: "grd", name: "GRD Auditorium", lat: 11.032415, lng: 77.033340 }, { id: "indoor", name: "Indoor Auditorium", lat: 11.033714, lng: 77.035304 },
+      { id: "ab", name: "A Block", lat: 11.033230, lng: 77.032509 }, { id: "bb", name: "B Block", lat: 11.033238, lng: 77.033060 },
+      { id: "cb", name: "C Block", lat: 11.032585, lng: 77.033888 }, { id: "db", name: "D Block", lat: 11.033280, lng: 77.034520 },
+      { id: "eb", name: "E Block", lat: 11.032854, lng: 77.034351 }, { id: "fb", name: "F Block", lat: 11.032585, lng: 77.033888 },
+      { id: "gb", name: "G Block", lat: 11.032609, lng: 77.034594 }, { id: "qb", name: "Q Block", lat: 11.034020, lng: 77.034499 },
+      { id: "book", name: "Book Depot", lat: 11.033405, lng: 77.033032 }, { id: "pothigai", name: "Pothigai Hall", lat: 11.033372, lng: 77.033410 },
+      { id: "Brahmam", name: "Brahmam Hall", lat: 11.034183, lng: 77.033856 }, { id: "Sangamam", name: "Sangamam Hall", lat: 11.032886, lng: 77.034344 },
+      { id: "bharathi", name: "Bharathi Hostel", lat: 11.032652, lng: 77.035604 }, { id: "voc", name: "VOC Hostel", lat: 11.033490, lng: 77.035535 },
+      { id: "nri", name: "NRI Hostel", lat: 11.032658, lng: 77.035785 }, { id: "main", name: "Maintainance Block", lat: 11.033711, lng: 77.035527 },
+      { id: "alu", name: "Alumni Block", lat: 11.032002, lng: 77.033445 }, { id: "kaveri", name: "Kaveri Hall", lat: 11.034020, lng: 77.034499 },
+      { id: "vaigai", name: "Vaigai Hall", lat: 11.034020, lng: 77.034499 }, { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534 }
     ];
     const locationmarker = [
       { id: "front", name: "Front Gate", lat: 11.034700, lng: 77.033850, icon: "⛩️" }, { id: "admiss", name: "Admission Office", lat: 11.032726, lng: 77.033547, icon: "💼" },
@@ -3527,8 +3898,30 @@
       { id: "Khokho", name: "Khokho Court", lat: 11.030778, lng: 77.033976, icon: "🏃‍♀️" }, { id: "Basketball", name: "Basketball Court", lat: 11.032139, lng: 77.036283, icon: "🏀" },
       { id: "indoor", name: "Indoor Auditorium", lat: 11.033404, lng: 77.035299, icon: "⛹️" }, { id: "P1", name: "Students & General Parking", lat: 11.034749, lng: 77.034258, icon: "🏍️" },
       { id: "P2", name: "Staff Parking", lat: 11.034203, lng: 77.033518, icon: "🅿️" }, { id: "P3", name: "Students Car Parking", lat: 11.033577, lng: 77.036263, icon: "🚗" },
-      { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534, icon: "⛩️" }
+      { id: "back", name: "Back Gate", lat: 11.031834, lng: 77.036534, icon: "⛩️" },
+      { id: "lib_m", name: "Library", lat: 11.033796, lng: 77.033437, icon: "📚" }
     ];
+
+    /* Map marker IDs to canonical location names for side menu lookup */
+    const markerToLocationName = {
+      'eb': 'E Block', 'ab': 'A Block', 'bb': 'B Block', 'cb': 'C Block', 'db': 'D Block',
+      'fb': 'F Block', 'gb': 'G Block', 'qb': 'Q Block', 'grd': 'GRD Auditorium',
+      'indoor': 'Indoor Auditorium', 'lib': 'Library', 'lib_m': 'Library',
+      'can1': 'Food Court 1', 'can2': 'Food Court 2'
+    };
+
+    const landmarkMapping = {
+      'Front Gate': 'front', 'Admission Office': 'admiss', 'Library': 'lib', 'Principal Office': 'prin',
+      'S F Office': 'sf', 'Aided Office': 'aided', 'Placement Office': 'pla', 'Hostel Office': 'hostel',
+      'Food Court 1': 'can1', 'Food Court 2': 'can2', 'GRD Auditorium': 'grd', 'Indoor Auditorium': 'indoor',
+      'A Block': 'ab', 'B Block': 'bb', 'C Block': 'cb', 'D Block': 'db', 'E Block': 'eb',
+      'F Block': 'fb', 'G Block': 'gb', 'Q Block': 'qb', 'Book Depot': 'book',
+      'Pothigai Hall': 'pothigai', 'Bharathi Hostel': 'bharathi', 'NRI Hostel': 'nri',
+      'Back Gate': 'back', 'Sangamam Hall': 'Sangamam', 'Brahmam Hall': 'Brahmam',
+      'VOC Hostel': 'voc', 'Maintainance Block': 'main', 'Alumni Block': 'alu',
+      'Kaveri Hall': 'kaveri', 'Vaigai Hall': 'vaigai'
+    };
+
     const graphData = {
       nodes: [
         { id: "G1", lat: 11.034820, lng: 77.033845 }, { id: "G2", lat: 11.034563, lng: 77.033848 }, { id: "G3", lat: 11.034280, lng: 77.033855 }, { id: "G4", lat: 11.034310, lng: 77.034100 },
@@ -3570,27 +3963,128 @@
         ["G19", "G87"], ["G87", "G3"], ["G88", "G61"], ["G88", "G63"], ["G89", "G75"]
       ]
     };
-    const locationsList = ['Current Location', 'Front Gate', 'Admission Office', 'Library', 'Principal Office', 'S F Office', 'Aided Office', 'Hostel Office', 'Food Court 1', 'Food Court 2', 'GRD Auditorium', 'Indoor Auditorium', 'A Block', 'B Block', 'C Block', 'D Block', 'E Block', 'F Block', 'G Block', 'Q Block', 'Maintainance Block', 'Alumni Block', 'Book Depot', 'Pothigai Hall', 'Sangamam Hall', 'Brahmam Hall', 'Kaveri Hall', 'Vaigai Hall', 'Bharathi Hostel', 'NRI Hostel', 'VOC Hostel', 'Back Gate'];
-    const landmarkMapping = { 'Front Gate': 'front', 'Admission Office': 'admiss', 'Library': 'lib', 'Principal Office': 'prin', 'S F Office': 'sf', 'Aided Office': 'aided', 'Hostel Office': 'hostel', 'Food Court 1': 'can1', 'Food Court 2': 'can2', 'GRD Auditorium': 'grd', 'Indoor Auditorium': 'indoor', 'A Block': 'ab', 'B Block': 'bb', 'C Block': 'cb', 'D Block': 'db', 'E Block': 'eb', 'F Block': 'fb', 'G Block': 'gb', 'Q Block': 'qb', 'Book Depot': 'book', 'Pothigai Hall': 'pothigai', 'Bharathi Hostel': 'bharathi', 'NRI Hostel': 'nri', 'Back Gate': 'back', 'Sangamam Hall': 'Sangamam', 'Brahmam Hall': 'Brahmam', 'VOC Hostel': 'voc', 'Maintainance Block': 'main', 'Alumni Block': 'alu', 'Kaveri Hall': 'kaveri', 'Vaigai Hall': 'vaigai' };
 
-    /* ════════════════════════════════════════════════════════════════
-       SIDE MENU
-    ════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       SIDE MENU — Dynamic content rendering
+    ═══════════════════════════════════════════════════════════════════ */
+    function buildFloorIcon() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`;
+    }
+    function buildImgIcon() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+    }
+
+    function buildCarouselHTML(images, menuId) {
+      const imgTags = images.map((img, i) =>
+        `<img class="carousel-img${i === 0 ? ' active' : ''}" data-carousel-id="${menuId}" data-idx="${i}" src="${img.src}" alt="${img.alt}" onerror="this.src='${img.fallback}'">`
+      ).join('');
+      const dotTags = images.map((_, i) =>
+        `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-carousel-id="${menuId}" data-idx="${i}"></button>`
+      ).join('');
+      return `
+      <div class="sidebar-carousel">
+        <div class="carousel-wrap">
+          ${imgTags}
+          <span class="carousel-counter" id="carouselCounter_${menuId}">1 / ${images.length}</span>
+        </div>
+        <button class="carousel-arrow left" data-carousel-id="${menuId}" data-dir="-1">&#8249;</button>
+        <button class="carousel-arrow right" data-carousel-id="${menuId}" data-dir="1">&#8250;</button>
+        <div class="carousel-dots" id="carouselDots_${menuId}">${dotTags}</div>
+      </div>`;
+    }
+
+    function buildSideMenuContent(locationName, idPrefix = '') {
+      const data = LOCATION_DB[locationName];
+      if (!data) {
+        /* Fallback for locations without detailed data */
+        return `<div style="padding:20px 0;color:var(--muted);font-size:0.9rem;text-align:center;">
+        <div style="font-size:2rem;margin-bottom:10px;">🏫</div>
+        <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:6px;">${locationName}</div>
+        <div>Part of PSG College of Arts and Science campus.</div>
+      </div>`;
+      }
+
+      let html = '';
+      const menuId = idPrefix + locationName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+
+      /* Floor/department accordion sections */
+      if (data.floors) {
+        data.floors.forEach(floor => {
+          const deptItems = floor.depts.map(d =>
+            `<li><p class="depat-name">${d.name}</p><p class="room-range">Rooms: ${d.rooms}</p></li>`
+          ).join('');
+          html += `<details class="accordion-item">
+          <summary>${buildFloorIcon()}${floor.label}</summary>
+          <ul class="department-list">${deptItems}</ul>
+        </details>`;
+        });
+      }
+
+      /* Info rows for non-floor locations */
+      if (data.info) {
+        html += `<details class="accordion-item" open>
+        <summary><i class="fas fa-info-circle" style="width:16px;text-align:center;"></i> About</summary>
+        <ul class="department-list">`;
+        data.info.forEach(row => {
+          html += `<li class="info-row" style="display:flex;align-items:flex-start;gap:10px;border-left:3px solid var(--purple);">
+          <i class="${row.icon}" style="color:var(--purple2);margin-top:2px;font-size:0.85rem;flex-shrink:0;"></i>
+          <div>
+            <div class="room-range" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:2px;">${row.label}</div>
+            <div style="font-size:0.88rem;color:var(--text);line-height:1.5;">${row.text}</div>
+          </div>
+        </li>`;
+        });
+        html += `</ul></details>`;
+      }
+
+      /* Images accordion */
+      if (data.images && data.images.length) {
+        html += `<details class="accordion-item">
+        <summary>${buildImgIcon()} Images</summary>
+        <ul class="department-list" style="padding:12px;">
+          <li style="padding:0;background:transparent;border-left:none;">
+            ${buildCarouselHTML(data.images, menuId)}
+          </li>
+        </ul>
+      </details>`;
+      }
+
+      return html;
+    }
+
+    /* Store the images for the currently open side menu (for lightbox) */
+    let currentSideMenuImages = [];
+    let lbIdx = 0;
+
     function openSidebar(locationName) {
       const name = locationName || 'E Block';
       currentSidebarLocationName = name;
       document.getElementById('sideMenuTitle').textContent = name;
       const inList = locationsList.includes(name) && name !== 'Current Location';
       document.getElementById('sideMenuDirectionBtn').style.display = inList ? '' : 'none';
+
+      /* Render dynamic content */
+      document.getElementById('sideMenuContent').innerHTML = buildSideMenuContent(name);
+
+      /* Store images for lightbox */
+      const data = LOCATION_DB[name];
+      currentSideMenuImages = (data && data.images) ? data.images : [];
+      lbIdx = 0;
+
+      /* Wire up carousel interactions after DOM is updated */
+      bindCarouselEvents();
+
       document.getElementById('sideMenu').classList.add('open');
       document.getElementById('overlay').classList.add('active');
       document.body.style.overflow = 'hidden';
     }
+
     function closeSidebar() {
       document.getElementById('sideMenu').classList.remove('open');
       document.getElementById('overlay').classList.remove('active');
       document.body.style.overflow = '';
     }
+
     function navigateFromSideMenu() {
       if (isAppOffline()) return;
       const locationName = currentSidebarLocationName;
@@ -3604,59 +4098,111 @@
       searchRoute();
     }
 
-    /* ════════════════════════════════════════════════════════════════
-       GALLERY / CAROUSEL / LIGHTBOX
-    ════════════════════════════════════════════════════════════════ */
-    const galleryImages = [
-      { src: 'E Block.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=E+Block', alt: 'E Block' },
-      { src: 'E Block2.webp', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=E+Block+2', alt: 'E Block 2' },
-      { src: 'lab 2.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+2', alt: 'Lab 2' },
-      { src: 'lab 3.jpg', fallback: 'https://placehold.co/900x600/12143a/a29bfe?text=Lab+3', alt: 'Lab 3' }
-    ];
-    let carouselIdx = 0, lbIdx = 0;
-    function initCarousel() {
-      const dc = document.getElementById('carouselDots'); dc.innerHTML = '';
-      galleryImages.forEach((_, i) => { const d = document.createElement('button'); d.className = 'carousel-dot' + (i === 0 ? ' active' : ''); d.addEventListener('click', () => goCarousel(i)); dc.appendChild(d); });
-      document.querySelectorAll('#sidebarCarousel .carousel-img').forEach((img, i) => img.addEventListener('click', () => openLightbox(i)));
-      document.getElementById('carouselPrev').addEventListener('click', e => { e.stopPropagation(); goCarousel((carouselIdx - 1 + galleryImages.length) % galleryImages.length); });
-      document.getElementById('carouselNext').addEventListener('click', e => { e.stopPropagation(); goCarousel((carouselIdx + 1) % galleryImages.length); });
+    /* ═══════════════════════════════════════════════════════════════════
+       CAROUSEL — event delegation on sidebar content
+    ═══════════════════════════════════════════════════════════════════ */
+    function bindCarouselEvents(container) {
+      const content = container || document.getElementById('sideMenuContent');
+
+      /* Arrow buttons */
+      content.querySelectorAll('.carousel-arrow').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const menuId = btn.dataset.carouselId, dir = parseInt(btn.dataset.dir);
+          stepCarousel(menuId, dir);
+        });
+      });
+
+      /* Dot buttons */
+      content.querySelectorAll('.carousel-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+          const menuId = dot.dataset.carouselId, idx = parseInt(dot.dataset.idx);
+          goCarousel(menuId, idx);
+        });
+      });
+
+      /* Click image to open lightbox */
+      content.querySelectorAll('.carousel-img').forEach(img => {
+        img.addEventListener('click', () => {
+          const idx = parseInt(img.dataset.idx);
+          openLightbox(idx);
+        });
+      });
     }
-    function goCarousel(idx) {
-      const imgs = document.querySelectorAll('#sidebarCarousel .carousel-img'), dots = document.querySelectorAll('#carouselDots .carousel-dot');
-      imgs[carouselIdx].classList.remove('active'); dots[carouselIdx].classList.remove('active');
-      carouselIdx = idx; imgs[carouselIdx].classList.add('active'); dots[carouselIdx].classList.add('active');
-      document.getElementById('carouselCounter').textContent = `${carouselIdx + 1} / ${galleryImages.length}`;
+
+    function getCarouselState(menuId) {
+      const imgs = document.querySelectorAll(`.carousel-img[data-carousel-id="${menuId}"]`);
+      const dots = document.querySelectorAll(`.carousel-dot[data-carousel-id="${menuId}"]`);
+      let currentIdx = 0;
+      imgs.forEach((img, i) => { if (img.classList.contains('active')) currentIdx = i; });
+      return { imgs, dots, currentIdx, total: imgs.length };
     }
-    function openLightbox(idx) { lbIdx = idx; document.getElementById('lightbox').classList.add('active'); document.body.style.overflow = 'hidden'; updateLightbox(); }
-    function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow = ''; }
-    function goLightbox(idx) { lbIdx = idx; updateLightbox(); }
+
+    function goCarousel(menuId, idx) {
+      const { imgs, dots, total } = getCarouselState(menuId);
+      if (!total) return;
+      const newIdx = ((idx % total) + total) % total;
+      imgs.forEach(img => img.classList.remove('active'));
+      dots.forEach(dot => dot.classList.remove('active'));
+      if (imgs[newIdx]) imgs[newIdx].classList.add('active');
+      if (dots[newIdx]) dots[newIdx].classList.add('active');
+      const counter = document.getElementById(`carouselCounter_${menuId}`);
+      if (counter) counter.textContent = `${newIdx + 1} / ${total}`;
+    }
+
+    function stepCarousel(menuId, dir) {
+      const { currentIdx, total } = getCarouselState(menuId);
+      goCarousel(menuId, currentIdx + dir);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       LIGHTBOX
+    ═══════════════════════════════════════════════════════════════════ */
+    function openLightbox(idx) {
+      if (!currentSideMenuImages.length) return;
+      lbIdx = idx;
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      updateLightbox();
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    function goLightbox(idx) {
+      lbIdx = ((idx % currentSideMenuImages.length) + currentSideMenuImages.length) % currentSideMenuImages.length;
+      updateLightbox();
+    }
     function updateLightbox() {
-      const img = document.getElementById('lightboxImg'), g = galleryImages[lbIdx];
-      img.style.animation = 'none'; img.offsetHeight; img.style.animation = 'zoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+      if (!currentSideMenuImages.length) return;
+      const img = document.getElementById('lightboxImg'), g = currentSideMenuImages[lbIdx];
+      img.style.animation = 'none'; img.offsetHeight;
+      img.style.animation = 'zoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1)';
       img.src = g.src; img.alt = g.alt; img.onerror = () => { img.src = g.fallback; };
-      document.getElementById('lbCounter').textContent = `${lbIdx + 1} / ${galleryImages.length}`;
+      document.getElementById('lbCounter').textContent = `${lbIdx + 1} / ${currentSideMenuImages.length}`;
     }
     function initLightbox() {
       document.getElementById('lbClose').addEventListener('click', closeLightbox);
-      document.getElementById('lbPrev').addEventListener('click', () => goLightbox((lbIdx - 1 + galleryImages.length) % galleryImages.length));
-      document.getElementById('lbNext').addEventListener('click', () => goLightbox((lbIdx + 1) % galleryImages.length));
+      document.getElementById('lbPrev').addEventListener('click', () => goLightbox(lbIdx - 1));
+      document.getElementById('lbNext').addEventListener('click', () => goLightbox(lbIdx + 1));
       document.getElementById('lightbox').addEventListener('click', e => { if (e.target === document.getElementById('lightbox')) closeLightbox(); });
-      document.addEventListener('keydown', e => { if (!document.getElementById('lightbox').classList.contains('active')) return; if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') goLightbox((lbIdx - 1 + galleryImages.length) % galleryImages.length); if (e.key === 'ArrowRight') goLightbox((lbIdx + 1) % galleryImages.length); });
+      document.addEventListener('keydown', e => {
+        if (!document.getElementById('lightbox').classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') goLightbox(lbIdx - 1);
+        if (e.key === 'ArrowRight') goLightbox(lbIdx + 1);
+      });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        MARKERS
-    ════════════════════════════════════════════════════════════════ */
-    function createStartIcon() {
-      return L.divIcon({ className: 'start-marker-icon', html: `<svg width="30" height="30" viewBox="0 0 34 34"><circle cx="15" cy="15" r="14" fill="#0a0e27"/><circle cx="15" cy="15" r="9.5" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [17, 17], popupAnchor: [0, -18] });
-    }
-    function createEndIcon() {
-      return L.divIcon({ className: 'end-marker-icon', html: `<svg width="25" height="32" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 27 15 27s15-16 15-27C30 6.7 23.3 0 15 0Z" fill="#e17055"/><circle cx="15" cy="15" r="6.5" fill="#b71c1c"/><circle cx="15" cy="15" r="3" fill="#fff"/></svg>`, iconSize: [30, 42], iconAnchor: [15, 42], popupAnchor: [0, -44] });
-    }
+    ═══════════════════════════════════════════════════════════════════ */
+    function createStartIcon() { return L.divIcon({ className: 'start-marker-icon', html: `<svg width="30" height="30" viewBox="0 0 34 34"><circle cx="15" cy="15" r="14" fill="#0a0e27"/><circle cx="15" cy="15" r="9.5" fill="#fff"/></svg>`, iconSize: [30, 30], iconAnchor: [17, 17], popupAnchor: [0, -18] }); }
+    function createEndIcon() { return L.divIcon({ className: 'end-marker-icon', html: `<svg width="25" height="32" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 27 15 27s15-16 15-27C30 6.7 23.3 0 15 0Z" fill="#e17055"/><circle cx="15" cy="15" r="6.5" fill="#b71c1c"/><circle cx="15" cy="15" r="3" fill="#fff"/></svg>`, iconSize: [30, 42], iconAnchor: [15, 42], popupAnchor: [0, -44] }); }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        ARROW ANIMATION
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function buildCumDist(ll) { const c = [0]; for (let i = 1; i < ll.length; i++)c.push(c[i - 1] + hav({ lat: ll[i - 1][0], lng: ll[i - 1][1] }, { lat: ll[i][0], lng: ll[i][1] })); return c; }
     function interpolateOnPath(ll, cum, prog) { const total = cum[cum.length - 1], target = prog * total; let lo = 0, hi = cum.length - 1; while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= target) lo = mid; else hi = mid; } const sl = cum[hi] - cum[lo], t = sl > 0 ? (target - cum[lo]) / sl : 0, a = ll[lo], b = ll[hi]; const lat = a[0] + (b[0] - a[0]) * t, lng = a[1] + (b[1] - a[1]) * t, dy = b[0] - a[0], dx = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180); return { lat, lng, angleDeg: Math.atan2(dx, dy) * 180 / Math.PI }; }
     function makeArrowIcon(deg) { return L.divIcon({ className: 'route-arrow-marker', html: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(${deg}deg);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><circle cx="18" cy="18" r="17" fill="rgba(253,203,110,0.18)"/><circle cx="18" cy="18" r="13" fill="#fdcb6e" stroke="#e17055" stroke-width="2"/><polygon points="18,6 24,22 18,18 12,22" fill="#cc6600"/><circle cx="18" cy="25" r="2.5" fill="#cc6600"/></svg>`, iconSize: [36, 36], iconAnchor: [18, 18] }); }
@@ -3670,55 +4216,30 @@
       function loop(ts) { if (isAppOffline()) { arrowAnimFrameId = requestAnimationFrame(loop); return; } if (lts !== null) { arrowProgress += ARROW_SPEED * (ts - lts); if (arrowProgress >= 1) arrowProgress = 0; } lts = ts; const p = interpolateOnPath(arrowRouteLatlngs, cum, arrowProgress); arrowMarker.setLatLng([p.lat, p.lng]); arrowMarker.setIcon(makeArrowIcon(p.angleDeg)); arrowAnimFrameId = requestAnimationFrame(loop); }
       arrowAnimFrameId = requestAnimationFrame(loop);
     }
-    function stopArrowAnimation() {
-      if (arrowAnimFrameId) { cancelAnimationFrame(arrowAnimFrameId); arrowAnimFrameId = null; }
-      if (arrowMarker) { campusMap.removeLayer(arrowMarker); arrowMarker = null; }
-      arrowRouteLatlngs = []; arrowProgress = 0;
-    }
+    function stopArrowAnimation() { if (arrowAnimFrameId) { cancelAnimationFrame(arrowAnimFrameId); arrowAnimFrameId = null; } if (arrowMarker) { campusMap.removeLayer(arrowMarker); arrowMarker = null; } arrowRouteLatlngs = []; arrowProgress = 0; }
 
-    /* ════════════════════════════════════════════════════════════════
-       GEOGRAPHY HELPERS
-    ════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       GEO HELPERS
+    ═══════════════════════════════════════════════════════════════════ */
     function hav(a, b) { const R = 6371000, toR = x => x * Math.PI / 180, dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng), s = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(s)); }
     function nearestPointOnSegment(p, a, b) { const px = p.lng, py = p.lat, ax = a.lng, ay = a.lat, bx = b.lng, by = b.lat, ABx = bx - ax, ABy = by - ay, APx = px - ax, APy = py - ay, ABAB = ABx * ABx + ABy * ABy, APAB = APx * ABx + APy * ABy; if (ABAB === 0) return { lat: a.lat, lng: a.lng }; const t = Math.max(0, Math.min(1, APAB / ABAB)); return { lat: ay + t * ABy, lng: ax + t * ABx }; }
 
-    /* ════════════════════════════════════════════════════════════════
-       GRAPH
-    ════════════════════════════════════════════════════════════════ */
-    function addLandmarkEntranceNodes() {
-      places.forEach(p => {
-        const eId = `ENT_${p.id}`, eNode = { id: eId, lat: p.lat, lng: p.lng };
-        graph.nodes.push(eNode);
-        let bd = Infinity, bnId = null, bEdge = null, bPt = null;
-        for (let i = 0; i < graph.nodes.length - 1; i++) { const d = hav(p, graph.nodes[i]); if (d < bd) { bd = d; bnId = graph.nodes[i].id; bEdge = null; } }
-        for (const [aId, bId] of graph.edges) { const ai = graph.nodes.findIndex(n => n.id === aId), bi = graph.nodes.findIndex(n => n.id === bId); if (ai === -1 || bi === -1) continue; const np = nearestPointOnSegment(p, graph.nodes[ai], graph.nodes[bi]), d = hav(p, np); if (d < bd) { bd = d; bEdge = [aId, bId]; bPt = np; bnId = null; } }
-        if (bEdge && bPt) { const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng }; graph.nodes.push(sNode); const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0])); if (ei !== -1) graph.edges.splice(ei, 1); graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]); }
-        else if (bnId) graph.edges.push([bnId, eId]);
-      });
-      nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i]));
-    }
+    /* ═══════════════════════════════════════════════════════════════════
+       GRAPH / ROUTING
+    ═══════════════════════════════════════════════════════════════════ */
+    function addLandmarkEntranceNodes() { places.forEach(p => { const eId = `ENT_${p.id}`, eNode = { id: eId, lat: p.lat, lng: p.lng }; graph.nodes.push(eNode); let bd = Infinity, bnId = null, bEdge = null, bPt = null; for (let i = 0; i < graph.nodes.length - 1; i++) { const d = hav(p, graph.nodes[i]); if (d < bd) { bd = d; bnId = graph.nodes[i].id; bEdge = null; } } for (const [aId, bId] of graph.edges) { const ai = graph.nodes.findIndex(n => n.id === aId), bi = graph.nodes.findIndex(n => n.id === bId); if (ai === -1 || bi === -1) continue; const np = nearestPointOnSegment(p, graph.nodes[ai], graph.nodes[bi]), d = hav(p, np); if (d < bd) { bd = d; bEdge = [aId, bId]; bPt = np; bnId = null; } } if (bEdge && bPt) { const sId = `SPLIT_${p.id}`, sNode = { id: sId, lat: bPt.lat, lng: bPt.lng }; graph.nodes.push(sNode); const ei = graph.edges.findIndex(e => (e[0] === bEdge[0] && e[1] === bEdge[1]) || (e[0] === bEdge[1] && e[1] === bEdge[0])); if (ei !== -1) graph.edges.splice(ei, 1); graph.edges.push([bEdge[0], sId], [sId, bEdge[1]], [sId, eId]); } else if (bnId) graph.edges.push([bnId, eId]); }); nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i])); }
     function buildAdj(re = new Set(), rn = new Set()) { const adj = Array(graph.nodes.length).fill(0).map(() => []); for (const [aiId, biId] of graph.edges) { const ai = nodeIndex.get(aiId), bi = nodeIndex.get(biId); if (ai == null || bi == null) continue; if (rn.has(ai) || rn.has(bi)) continue; if (re.has(`${ai}-${bi}`) || re.has(`${bi}-${ai}`)) continue; const w = hav(graph.nodes[ai], graph.nodes[bi]); adj[ai].push([bi, w]); adj[bi].push([ai, w]); } return adj; }
     function dijkstra(adj, src, dst) { const n = adj.length, dist = Array(n).fill(Infinity), prev = Array(n).fill(-1), used = Array(n).fill(false); dist[src] = 0; const pq = [{ d: 0, i: src }]; const pop = () => { if (!pq.length) return null; let bi = -1, bd = Infinity; for (let i = 0; i < pq.length; i++)if (pq[i].d < bd) { bd = pq[i].d; bi = i; } return bi < 0 ? null : pq.splice(bi, 1)[0]; }; while (pq.length) { const cur = pop(); if (!cur) break; const u = cur.i; if (used[u]) continue; used[u] = true; if (u === dst) break; for (const [v, w] of adj[u]) if (!used[v] && dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; pq.push({ d: dist[v], i: v }); } } const path = []; let u = dst; if (prev[u] === -1 && u !== src) return { path: [], distance: Infinity }; while (u !== -1) { path.push(u); if (u === src) break; u = prev[u]; } path.reverse(); return { path, distance: dist[dst] }; }
     function pathDistance(idx) { let d = 0; for (let i = 0; i + 1 < idx.length; i++)d += hav(graph.nodes[idx[i]], graph.nodes[idx[i + 1]]); return d; }
     function arraysEqual(a, b) { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++)if (a[i] !== b[i]) return false; return true; }
     function yensKShortests(i, t, K) { const A = [], B = [], adj0 = buildAdj(), p0 = dijkstra(adj0, i, t); if (!p0.path.length || !isFinite(p0.distance)) return A; A.push(p0); for (let k = 1; k < K; k++) { const pp = A[k - 1].path; for (let iS = 0; iS < pp.length - 1; iS++) { const sn = pp[iS], rp = pp.slice(0, iS + 1), re = new Set(), rn = new Set(); for (const p of A) { const cr = p.path.slice(0, iS + 1); if (arraysEqual(cr, rp) && p.path.length > iS + 1) { const u = p.path[iS], v = p.path[iS + 1]; re.add(`${u}-${v}`); re.add(`${v}-${u}`); } } for (const r of rp.slice(0, -1)) rn.add(r); const adj = buildAdj(re, rn), sr = dijkstra(adj, sn, t); if (sr.path.length && isFinite(sr.distance)) { const tp = rp.slice(0, -1).concat(sr.path), td = pathDistance(tp); if (!B.some(b => arraysEqual(b.path, tp))) B.push({ path: tp, distance: td }); } } if (!B.length) break; B.sort((a, b) => a.distance - b.distance); A.push(B.shift()); const uniq = []; for (const p of A) if (!uniq.some(q => arraysEqual(q.path, p.path))) uniq.push(p); uniq.sort((a, b) => a.distance - b.distance); A.splice(0, A.length, ...uniq); } return A; }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        ROUTE RENDERING
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function clearRoutes() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; } if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } stopArrowAnimation(); }
     function setStartEndMarkers(A, B) { if (startMarker) { campusMap.removeLayer(startMarker); startMarker = null; } if (endMarker) { campusMap.removeLayer(endMarker); endMarker = null; } startMarker = L.marker([A.lat, A.lng], { icon: createStartIcon(), zIndexOffset: 900 }).addTo(campusMap).bindPopup(`<strong>Start:</strong><br/>${A.name}`); endMarker = L.marker([B.lat, B.lng], { icon: createEndIcon(), zIndexOffset: 1000 }).addTo(campusMap).bindPopup(`<strong>Destination:</strong><br/>${B.name}`).openPopup(); }
     function animatedPolyline(ll, opts, dur = 1500) { const pl = L.polyline([], opts), st = Date.now(), tot = ll.length; function animate() { const el = Date.now() - st, prog = Math.min(el / dur, 1), pts = Math.floor(prog * tot); if (pts > 0) { const part = ll.slice(0, pts); if (prog < 1 && pts < tot) { const s = (prog * tot) - pts, c = ll[pts - 1], n = ll[pts]; part.push([c[0] + (n[0] - c[0]) * s, c[1] + (n[1] - c[1]) * s]); } pl.setLatLngs(part); } if (prog < 1) animationFrameId = requestAnimationFrame(animate); } animate(); return pl; }
-
-    /* Live mode: render only the single shortest route polyline */
-    function renderLiveNavRoute(pathIndices) {
-      if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; }
-      const ll = pathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
-      const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-      const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 });
-      routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap);
-      startArrowAnimation(ll, arrowProgress);
-    }
 
     function renderDynamicRoute() { if (!isNavigating || !currentPathIndices.length) return; if (routeLayerGroup) { campusMap.removeLayer(routeLayerGroup); routeLayerGroup = null; } const ll = currentPathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); const border = L.polyline(ll, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); const route = L.polyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }); routeLayerGroup = L.layerGroup([border, route]).addTo(campusMap); startArrowAnimation(ll, arrowProgress); }
 
@@ -3726,22 +4247,16 @@
       if (isAppOffline()) return;
       const results = lastResults; if (!results || !results.length) return;
       activeRouteIndex = selectedIndex; clearRoutes();
-
-      /* In live nav mode, always show only the single best route (no alternates) */
       if (liveNavMode) {
-        const pathIndices = results[0].path;
-        const ll = pathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
+        const pathIndices = results[0].path, ll = pathIndices.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
         const border = animatedPolyline(ll, { color: '#fff', weight: 10, opacity: 0.9, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
         const pr = animatedPolyline(ll, { color: '#6c5ce7', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', smoothFactor: 1 }, 1500);
         routeLayerGroup = L.layerGroup([border, pr]).addTo(campusMap);
         setTimeout(() => startArrowAnimation(ll, 0), 1600);
-        fullRoutePath = ll;
-        currentPathIndices = pathIndices.slice();
+        fullRoutePath = ll; currentPathIndices = pathIndices.slice();
         if (pr) setTimeout(() => campusMap.fitBounds(L.polyline(ll).getBounds().pad(0.22)), 100);
         return;
       }
-
-      /* Normal mode: show active + faded alternates */
       const layers = [];
       results.forEach((res, idx) => {
         const ll = res.path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
@@ -3768,72 +4283,40 @@
     }
 
     function checkDeviationAndRecalc(up) { if (isAppOffline()) return false; if (!isNavigating || !currentDestination || !up || !currentPathIndices || !currentPathIndices.length) return false; let mn = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < mn) mn = d; } for (let i = 0; i < currentPathIndices.length - 1; i++) { const d = hav(up, nearestPointOnSegment(up, graph.nodes[currentPathIndices[i]], graph.nodes[currentPathIndices[i + 1]])); if (d < mn) mn = d; } if (mn > DEVIATION_THRESHOLD) { recalcRouteFromCurrent(); return true; } return false; }
-
-    function recalcRouteFromCurrent() {
-      if (isAppOffline()) return;
-      if (!isNavigating || !userLatLng || !currentDestination) return;
-      const up = { lat: userLatLng[0], lng: userLatLng[1] };
-      let nnIdx = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } });
-      if (nnIdx === null) return;
-      const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return;
-      /* In live mode: only get shortest (K=1) */
-      const K = liveNavMode ? 1 : KROUTES;
-      const res = yensKShortests(nnIdx, dId, K); if (!res.length) return;
-      lastResults = res; activeRouteIndex = 0;
-      fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]);
-      currentPathIndices = res[0].path.slice();
-      setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination);
-      renderDynamicRoute();
-      if (isMobile()) renderMobileSheet(res, 0, currentDestination.name, liveNavMode);
-      else renderDesktopRouteStack(res, 0, liveNavMode);
-      updateLiveNavUI();
-    }
-
+    function recalcRouteFromCurrent() { if (isAppOffline()) return; if (!isNavigating || !userLatLng || !currentDestination) return; const up = { lat: userLatLng[0], lng: userLatLng[1] }; let nnIdx = null, md = Infinity; graph.nodes.forEach((n, i) => { const d = hav(up, n); if (d < md) { md = d; nnIdx = i; } }); if (nnIdx === null) return; const dId = nodeIndex.get(`ENT_${currentDestination.id}`); if (dId === undefined) return; const K = liveNavMode ? 1 : KROUTES; const res = yensKShortests(nnIdx, dId, K); if (!res.length) return; lastResults = res; activeRouteIndex = 0; fullRoutePath = res[0].path.map(i => [graph.nodes[i].lat, graph.nodes[i].lng]); currentPathIndices = res[0].path.slice(); setStartEndMarkers({ lat: userLatLng[0], lng: userLatLng[1], name: 'Your Location' }, currentDestination); renderDynamicRoute(); if (isMobile()) renderMobileSheet(res, 0, currentDestination.name, liveNavMode); else renderDesktopRouteStack(res, 0, liveNavMode); updateLiveNavUI(); }
     function checkIfArrived(up) { if (!isNavigating || !currentDestination || hasArrived) return; if (hav(up, currentDestination) <= ARRIVED_THRESHOLD) showArrivedNotification(currentDestination.name); }
+    function updatePathBasedOnLocation() { if (isAppOffline()) return; if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return; const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now; const up = { lat: userLatLng[0], lng: userLatLng[1] }; checkIfArrived(up); if (hasArrived) return; if (checkDeviationAndRecalc(up)) return; let ci = 0, md = Infinity; for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } } if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); } updateLiveNavUI(); }
 
-    function updatePathBasedOnLocation() {
-      if (isAppOffline()) return;
-      if (!isNavigating || !userLatLng || !currentDestination || !currentPathIndices.length) return;
-      const now = Date.now(); if (now - lastUpdateTime < UPDATE_THRESHOLD) return; lastUpdateTime = now;
-      const up = { lat: userLatLng[0], lng: userLatLng[1] };
-      checkIfArrived(up); if (hasArrived) return;
-      if (checkDeviationAndRecalc(up)) return;
-
-      /* Advance path — remove already-passed nodes */
-      let ci = 0, md = Infinity;
-      for (let i = 0; i < currentPathIndices.length; i++) { const d = hav(up, graph.nodes[currentPathIndices[i]]); if (d < md) { md = d; ci = i; } }
-      if (md < PROXIMITY_THRESHOLD && ci > 0) { currentPathIndices = currentPathIndices.slice(ci); renderDynamicRoute(); }
-
-      /* Update real-time ETA/distance displays */
-      updateLiveNavUI();
-    }
-
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        LANDMARK HELPERS
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function getLandmarkByNameOrId(name) { if (name === 'Current Location') return null; const lid = landmarkMapping[name]; if (lid) return places.find(p => p.id === lid); return places.find(p => p.name === name); }
 
-    /* ════════════════════════════════════════════════════════════════
-       MAP INIT & LANDMARKS
-    ════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════
+       MAP INIT
+    ═══════════════════════════════════════════════════════════════════ */
     function initializeMap() {
       if (campusMap) { campusMap.invalidateSize(); return; }
       const cb = L.latLngBounds(L.latLng(11.029847, 77.032077), L.latLng(11.035600, 77.036616));
       campusMap = L.map('mapContainer', { maxBounds: cb, maxBoundsViscosity: 1.0, minZoom: 17, maxZoom: 19, preferCanvas: true, attributionControl: false }).setView([11.033400, 77.033864], 18);
       currentTileLayer = L.tileLayer(tileLayers.osm.url, tileLayers.osm.options).addTo(campusMap);
-      loadCampusData();
-      initializeLandmarkMarkers();
-      initLayerSwitcher();
+      loadCampusData(); initializeLandmarkMarkers(); initLayerSwitcher();
     }
     function loadCampusData() { places = landmarks; graph = JSON.parse(JSON.stringify(graphData)); nodeIndex = new Map(graph.nodes.map((n, i) => [n.id, i])); addLandmarkEntranceNodes(); }
+
     function buildPopupContent(lm) { return `<div class="popup-name">${lm.icon} ${lm.name}</div>`; }
+
     function initializeLandmarkMarkers() {
       if (landmarkMarkersLayer) { campusMap.removeLayer(landmarkMarkersLayer); landmarkMarkersLayer = null; }
       landmarkMarkersLayer = L.layerGroup();
       locationmarker.forEach(lm => {
         const icon = L.divIcon({ className: 'custom-landmark-marker', html: `<div style="background:#FFF8E1;border:2px solid #F59E0B;color:#F59E0B;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(245,158,11,0.25);cursor:pointer;">${lm.icon}</div>`, iconSize: [32, 32], iconAnchor: [16, 16] });
         const marker = L.marker([lm.lat, lm.lng], { icon, zIndexOffset: 500 }).bindPopup(buildPopupContent(lm), { maxWidth: 200 });
-        if (lm.id === 'eb') { marker.on('click', () => openSidebar('E Block')); }
+        /* Open side menu for locations that have a menu entry */
+        const menuName = markerToLocationName[lm.id];
+        if (menuName && LOCATION_DB[menuName]) {
+          marker.on('click', () => openSidebar(menuName));
+        }
         landmarkMarkersLayer.addLayer(marker);
       });
       landmarkMarkersLayer.addTo(campusMap);
@@ -3844,9 +4327,9 @@
       });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        GEOLOCATION
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     function startGeolocation() {
       if (userWatchId !== null) return;
       if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
@@ -3856,45 +4339,90 @@
         if (!userLocationMarker) {
           userLocationMarker = L.circleMarker(ll, { radius: 10, fillColor: '#6c5ce7', color: '#fff', weight: 3, fillOpacity: 1, zIndexOffset: 2000 }).addTo(campusMap);
           accuracyCircle = L.circle(ll, { radius: pos.coords.accuracy, color: '#6c5ce7', fillColor: '#6c5ce7', fillOpacity: 0.12, weight: 1 }).addTo(campusMap);
-        } else {
-          userLocationMarker.setLatLng(ll);
-          accuracyCircle.setLatLng(ll);
-          accuracyCircle.setRadius(pos.coords.accuracy);
-        }
-        /* Pause route recalculation/live-nav updates while offline; the dot
-           itself can still move since GPS works without internet, but no
-           network-dependent routing logic runs until back online. */
+        } else { userLocationMarker.setLatLng(ll); accuracyCircle.setLatLng(ll); accuracyCircle.setRadius(pos.coords.accuracy); }
         updatePathBasedOnLocation();
-      }, err => { console.warn('Geolocation error:', err) }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+      }, err => { console.warn('Geolocation error:', err); }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
       document.getElementById('currentLocationBtn').addEventListener('click', () => { if (isAppOffline()) return; if (userLatLng) campusMap.setView(userLatLng, 18); else alert('Location not available yet.'); });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        INPUT / DROPDOWN
-    ════════════════════════════════════════════════════════════════ */
-    function filterItems(iid, lid) { const inp = document.getElementById(iid), lst = document.getElementById(lid), items = Array.from(lst.getElementsByTagName('li')), f = inp.value.toLowerCase(); items.forEach(i => i.style.display = 'none'); if (!f) { items.forEach(i => i.style.display = ''); return; } items.forEach(i => { if (i.textContent.toLowerCase().startsWith(f)) i.style.display = ''; }); items.forEach(i => { if (!i.textContent.toLowerCase().startsWith(f) && i.textContent.toLowerCase().includes(f)) i.style.display = ''; }); }
+    ═══════════════════════════════════════════════════════════════════ */
+    function filterItems(iid, lid) {
+      const inp = document.getElementById(iid), lst = document.getElementById(lid);
+      const items = Array.from(lst.getElementsByTagName('li')), f = inp.value.toLowerCase().replace(/\s/g, '');
+      /* Show dropdown */
+      lst.style.display = 'block';
+      if (!inp.value.trim()) { items.forEach(i => { i.style.display = ''; i.classList.remove('highlight'); }); return; }
+      items.forEach(i => {
+        const name = i.textContent, normName = normalizeLoc(name);
+        const visible = normName.includes(f) || name.toLowerCase().includes(inp.value.toLowerCase());
+        i.style.display = visible ? '' : 'none';
+        i.classList.toggle('highlight', visible && normName.startsWith(f));
+      });
+    }
+
     function showList(lid) { if (isAppOffline()) return; document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'); document.getElementById(lid).style.display = 'block'; }
-    function populateDropdowns() { ['fromList', 'toList'].forEach(id => { const ul = document.getElementById(id); ul.innerHTML = ''; locationsList.forEach(loc => { const li = document.createElement('li'); li.textContent = loc; ul.appendChild(li); }); }); }
+
+    function populateDropdowns() {
+      ['fromList', 'toList'].forEach(id => {
+        const ul = document.getElementById(id); ul.innerHTML = '';
+        locationsList.forEach(loc => { const li = document.createElement('li'); li.textContent = loc; ul.appendChild(li); });
+      });
+    }
+
     function setupGlobalClickHandler() {
       document.addEventListener('click', e => {
         if (isAppOffline()) return;
-        if (e.target.tagName === 'LI' && e.target.closest('.dropdown')) { const inp = e.target.closest('.field-body')?.querySelector('input'); if (inp) { inp.value = e.target.textContent; if (inp.id === 'fromBox') { const btn = document.getElementById('curLocInlineBtn'); btn.classList.toggle('active', inp.value === 'Current Location'); } e.target.closest('.dropdown').style.display = 'none'; } return; }
+        if (e.target.tagName === 'LI' && e.target.closest('.dropdown')) {
+          const inp = e.target.closest('.field-body')?.querySelector('input');
+          if (inp) { inp.value = e.target.textContent; if (inp.id === 'fromBox') { const btn = document.getElementById('curLocInlineBtn'); btn.classList.toggle('active', inp.value === 'Current Location'); } e.target.closest('.dropdown').style.display = 'none'; }
+          return;
+        }
         const inside = [...document.querySelectorAll('.field-body')].some(w => w.contains(e.target));
         if (!inside) setTimeout(() => document.querySelectorAll('.dropdown').forEach(l => l.style.display = 'none'), 100);
       });
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
        SEARCH & CLEAR
-    ════════════════════════════════════════════════════════════════ */
+       Enhanced: resolves typed location names via normalizeLoc before
+       routing, shows friendly modal on invalid input.
+    ═══════════════════════════════════════════════════════════════════ */
     function searchRoute() {
-      if (isAppOffline()) {
-        showOfflineOverlay();
+      if (isAppOffline()) { showOfflineOverlay(); return; }
+
+      let fl = document.getElementById('fromBox').value.trim();
+      let tl = document.getElementById('toBox').value.trim();
+
+      if (!fl || !tl) { alert('Please select both From and To locations'); return; }
+
+      /* ── Resolve typed location names ── */
+      if (fl !== 'Current Location') {
+        const resolved = resolveLocationName(fl);
+        if (!resolved) {
+          showInvalidLocModal('From', fl, () => {
+            document.getElementById('fromBox').focus();
+            showList('fromList');
+          });
+          return;
+        }
+        fl = resolved;
+        document.getElementById('fromBox').value = fl;
+      }
+
+      const resolvedTo = resolveLocationName(tl);
+      if (!resolvedTo) {
+        showInvalidLocModal('To', tl, () => {
+          document.getElementById('toBox').focus();
+          showList('toList');
+        });
         return;
       }
-      const fl = document.getElementById('fromBox').value;
-      const tl = document.getElementById('toBox').value;
-      if (!fl || !tl) { alert('Please select both From and To locations'); return; }
+      tl = resolvedTo;
+      document.getElementById('toBox').value = tl;
+
+      /* ── Proceed with routing ── */
       if (!campusMap) { initializeMap(); return; }
       hasArrived = false;
       document.getElementById('arrivedToast').classList.remove('show');
@@ -3903,34 +4431,21 @@
       collapseNav(); closeLayerPanel();
 
       if (fl === 'Current Location') {
-        /* ── LIVE NAVIGATION MODE ── */
         startGeolocation();
-
-        /* Validate campus boundary */
         const proceedWithNav = (lat, lng) => {
           if (isAppOffline()) { showOfflineOverlay(); return; }
-          if (!isWithinCampus(lat, lng)) {
-            /* User is outside campus — show custom modal, abort live nav */
-            showCampusModal();
-            return;
-          }
-          /* User is inside campus — proceed with single-route live nav */
+          if (!isWithinCampus(lat, lng)) { showCampusModal(); return; }
           liveNavMode = true;
           const B = getLandmarkByNameOrId(tl);
           if (!B) { alert('Invalid destination'); return; }
           isNavigating = true; currentDestination = B;
-
           let nnId = null, md = Infinity;
           graph.nodes.forEach((n, i) => { const d = hav({ lat, lng }, n); if (d < md) { md = d; nnId = i; } });
           if (nnId === null) { alert('Could not connect to campus network'); isNavigating = false; liveNavMode = false; return; }
-
           const dId = nodeIndex.get(`ENT_${B.id}`);
           if (dId === undefined) { alert('Cannot find destination'); isNavigating = false; liveNavMode = false; return; }
-
-          /* K=1: only shortest path in live mode */
           const res = yensKShortests(nnId, dId, 1);
           if (!res.length) { alert('No path found'); isNavigating = false; liveNavMode = false; return; }
-
           lastResults = res; activeRouteIndex = 0;
           setStartEndMarkers({ lat, lng, name: 'Your Location' }, B);
           renderSelectedRoute(0);
@@ -3939,23 +4454,10 @@
           else renderDesktopRouteStack(res, 0, true);
           hideNavButtons();
         };
-
-        if (userLatLng) {
-          proceedWithNav(userLatLng[0], userLatLng[1]);
-        } else {
-          /* Get initial fix */
-          navigator.geolocation.getCurrentPosition(
-            pos => {
-              userLatLng = [pos.coords.latitude, pos.coords.longitude];
-              proceedWithNav(pos.coords.latitude, pos.coords.longitude);
-            },
-            () => alert('Could not get your current location. Please allow location access.')
-          );
-        }
+        if (userLatLng) { proceedWithNav(userLatLng[0], userLatLng[1]); }
+        else { navigator.geolocation.getCurrentPosition(pos => { userLatLng = [pos.coords.latitude, pos.coords.longitude]; proceedWithNav(pos.coords.latitude, pos.coords.longitude); }, () => alert('Could not get your current location. Please allow location access.')); }
       } else {
-        /* ── MANUAL / PLACE-TO-PLACE NAVIGATION ── */
-        liveNavMode = false;
-        isNavigating = false; currentDestination = null;
+        liveNavMode = false; isNavigating = false; currentDestination = null;
         const A = getLandmarkByNameOrId(fl), B = getLandmarkByNameOrId(tl);
         if (!A || !B) { alert('Invalid location selected'); return; }
         const si = nodeIndex.get(`ENT_${A.id}`), di = nodeIndex.get(`ENT_${B.id}`);
@@ -3982,14 +4484,164 @@
       showNavButtons(); expandNav();
     }
 
-    /* ════════════════════════════════════════════════════════════════
+    /* ═══════════════════════════════════════════════════════════════════
+       EXPLORE CAMPUS — directory grid + detail rendering
+       (drives #exploreBtn, #explorePage, #exploreDetailPage)
+    ═══════════════════════════════════════════════════════════════════ */
+    const EXPLORE_ITEMS = [
+      // { name: 'Front Gate', icon: '⛩️', tag: 'Gate' },
+      // { name: 'Back Gate', icon: '⛩️', tag: 'Gate' },
+      { name: 'Library', icon: '📚', tag: 'Library' },
+      { name: 'Admission Office', icon: '💼', tag: 'Office' },
+      { name: 'Principal Office', icon: '💼', tag: 'Office' },
+      { name: 'S F Office', icon: '💼', tag: 'Office' },
+      { name: 'Aided Office', icon: '💼', tag: 'Office' },
+      { name: 'Placement Office', icon: '💼', tag: 'Office' },
+      { name: 'Hostel Office', icon: '💼', tag: 'Office' },
+      { name: 'Food Court 1', icon: '🍽️', tag: 'Food Court' },
+      { name: 'Food Court 2', icon: '🍽️', tag: 'Food Court' },
+      { name: 'GRD Auditorium', icon: '🎭', tag: 'Auditorium' },
+      { name: 'Indoor Auditorium', icon: '⛹️', tag: 'Auditorium' },
+      { name: 'A Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'B Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'C Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'D Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'E Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'F Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'G Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'Q Block', icon: '🏛️', tag: 'Academic Block' },
+      { name: 'Pothigai Hall', icon: '🏢', tag: 'Hall' },
+      { name: 'Sangamam Hall', icon: '🏢', tag: 'Hall' },
+      { name: 'Brahmam Hall', icon: '🏢', tag: 'Hall' },
+      { name: 'Kaveri Hall', icon: '🏢', tag: 'Hall' },
+      { name: 'Vaigai Hall', icon: '🏢', tag: 'Hall' },
+      // { name: 'Bharathi Hostel', icon: '🏠', tag: 'Hostel' },
+      // { name: 'NRI Hostel', icon: '🏠', tag: 'Hostel' },
+      { name: 'Hostels', icon: '🏠', tag: 'Hostel' },
+      { name: 'Book Depot', icon: '📦', tag: 'Facility' },
+      { name: 'Maintainance Block', icon: '🔧', tag: 'Facility' },
+      { name: 'Alumni Block', icon: '🎓', tag: 'Facility' },
+      { name: 'Sports and Games', icon: '⚽', tag: 'Sports' },   
+      { name: 'Parking Area', icon: '🚗', tag: 'Parking' }  
+      // { name: 'Tennis Court', icon: '🏸', tag: 'Sports' },
+      // { name: 'Hockey Ground', icon: '🏑', tag: 'Sports' },
+      // { name: 'Volleyball Court', icon: '🏐', tag: 'Sports' },
+      // { name: 'Khokho Court', icon: '🏃‍♀️', tag: 'Sports' },
+      // { name: 'Basketball Court', icon: '🏀', tag: 'Sports' },
+      // { name: 'Students & General Parking', icon: '🏍️', tag: 'Parking' },
+      // { name: 'Staff Parking', icon: '🅿️', tag: 'Parking' },
+    ];
+
+    function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function exploreHasRoute(name) { return locationsList.includes(name); }
+
+    function renderExploreGrid(filterText = '') {
+      const grid = document.getElementById('exploreGrid');
+      const f = filterText.trim().toLowerCase();
+      const filtered = f
+        ? EXPLORE_ITEMS.filter(it => it.name.toLowerCase().includes(f) || it.tag.toLowerCase().includes(f))
+        : EXPLORE_ITEMS;
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="explore-empty"><i class="fas fa-map-signs"></i><div>No matching places found</div></div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map((it, i) => `
+        <div class="explore-card" style="animation-delay:${Math.min(i * 0.03, 0.4)}s" data-explore-name="${escHtml(it.name)}">
+          <div class="explore-card-icon">${it.icon}</div>
+          <div class="explore-card-name">${escHtml(it.name)}</div>
+          <div class="explore-card-tag">${escHtml(it.tag)}</div>
+        </div>`).join('');
+      grid.querySelectorAll('.explore-card').forEach(card => {
+        card.addEventListener('click', () => openExploreDetail(card.dataset.exploreName));
+      });
+    }
+
+    function openExplorePage() {
+      if (isAppOffline()) return;
+      renderExploreGrid(document.getElementById('exploreSearchInput').value);
+      document.getElementById('explorePage').classList.add('open');
+    }
+    function closeExplorePage() {
+      document.getElementById('explorePage').classList.remove('open');
+      document.getElementById('exploreDetailPage').classList.remove('open');
+    }
+    function closeExploreDetail() { document.getElementById('exploreDetailPage').classList.remove('open'); }
+
+    function buildExploreDetailContent(name) {
+      const item = EXPLORE_ITEMS.find(i => i.name === name);
+      const hasRoute = exploreHasRoute(name);
+      let html = '';
+
+      if (hasRoute) {
+        html += `<div class="explore-detail-direction-row">
+        <button class="explore-direction-btn" id="exploreDirectionBtn"><i class="fas fa-route"></i> Get Directions</button>
+      </div>`;
+      }
+
+      if (LOCATION_DB[name]) {
+        html += buildSideMenuContent(name, 'ex_');
+      } else {
+        html += `<div class="explore-section-title"><i class="fas fa-info-circle"></i> Overview</div>
+      <div class="explore-sub-card open">
+        <div class="explore-sub-card-header">
+          <span class="explore-sub-card-name">${item ? item.icon : '📍'} ${escHtml(name)}</span>
+          <i class="fas fa-chevron-down explore-sub-card-chevron"></i>
+        </div>
+        <div class="explore-sub-card-body">
+          <span class="explore-facility-pill"><i class="fas fa-tag"></i> ${item ? escHtml(item.tag) : 'Campus Location'}</span>
+          <p style="margin-top:10px;font-size:0.85rem;color:var(--muted);line-height:1.6;">Part of the PSGCAS campus. Use Get Directions to find the fastest walking route here.</p>
+        </div>
+      </div>`;
+      }
+
+      if (!hasRoute) {
+        html += `<div class="explore-no-route-note"><i class="fas fa-info-circle"></i> Turn-by-turn directions aren't available for this location yet.</div>`;
+      }
+
+      return html;
+    }
+
+    function openExploreDetail(name) {
+      currentSidebarLocationName = name;
+      document.getElementById('exploreDetailTitle').textContent = name;
+      const contentEl = document.getElementById('exploreDetailContent');
+      contentEl.innerHTML = buildExploreDetailContent(name);
+
+      /* Store images for lightbox (shared with side-menu carousel/lightbox code) */
+      const data = LOCATION_DB[name];
+      currentSideMenuImages = (data && data.images) ? data.images : [];
+      lbIdx = 0;
+
+      bindCarouselEvents(contentEl);
+      contentEl.querySelectorAll('.explore-sub-card-header').forEach(h => {
+        h.addEventListener('click', () => h.closest('.explore-sub-card').classList.toggle('open'));
+      });
+
+      const dirBtn = document.getElementById('exploreDirectionBtn');
+      if (dirBtn) dirBtn.addEventListener('click', () => navigateFromExplore(name));
+
+      document.getElementById('exploreDetailPage').classList.add('open');
+    }
+
+    function navigateFromExplore(name) {
+      if (isAppOffline()) return;
+      closeExploreDetail();
+      closeExplorePage();
+      if (campusMap) campusMap.closePopup();
+      document.getElementById('fromBox').value = 'Current Location';
+      document.getElementById('curLocInlineBtn').classList.add('active');
+      document.getElementById('toBox').value = name;
+      showNavButtons();
+      searchRoute();
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
        BOOT
-    ════════════════════════════════════════════════════════════════ */
+    ═══════════════════════════════════════════════════════════════════ */
     document.addEventListener('DOMContentLoaded', () => {
       populateDropdowns();
       setupGlobalClickHandler();
       setupSheetDrag();
-      initCarousel();
       initLightbox();
       initializeMap();
       startConnectivityWatcher();
@@ -4014,9 +4666,35 @@
       document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFullscreen) exitFullscreen(); });
       document.getElementById('ctrlToggleBtn').addEventListener('click', toggleCtrlGroup);
 
-      /* Close campus modal on backdrop click */
       document.getElementById('campusModal').addEventListener('click', e => {
         if (e.target === document.getElementById('campusModal')) closeCampusModal();
+      });
+      document.getElementById('invalidLocModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('invalidLocModal')) closeInvalidLocModal();
+      });
+
+      /* ── Explore Campus wiring ── */
+      document.getElementById('exploreBtn').addEventListener('click', openExplorePage);
+      document.getElementById('exploreBackBtn').addEventListener('click', closeExplorePage);
+      document.getElementById('exploreDetailBackBtn').addEventListener('click', closeExploreDetail);
+
+      const exploreSearchInput = document.getElementById('exploreSearchInput');
+      const exploreSearchClear = document.getElementById('exploreSearchClear');
+      exploreSearchInput.addEventListener('input', function () {
+        exploreSearchClear.classList.toggle('show', this.value.length > 0);
+        renderExploreGrid(this.value);
+      });
+      exploreSearchClear.addEventListener('click', () => {
+        exploreSearchInput.value = '';
+        exploreSearchClear.classList.remove('show');
+        renderExploreGrid('');
+        exploreSearchInput.focus();
+      });
+
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (document.getElementById('exploreDetailPage').classList.contains('open')) closeExploreDetail();
+        else if (document.getElementById('explorePage').classList.contains('open')) closeExplorePage();
       });
     });
   </script>
